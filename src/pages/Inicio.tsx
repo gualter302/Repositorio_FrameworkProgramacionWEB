@@ -1,3 +1,4 @@
+// Página de inicio: solo un mensaje de bienvenida.
 export default function Inicio() {
   return (
     <div>
