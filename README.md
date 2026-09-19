@@ -1,75 +1,63 @@
-# React + TypeScript + Vite
+# Pokédex con React y PokeAPI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este es un proyecto sencillo hecho con React que muestra los primeros 151 Pokémon.
+Los datos salen de una API gratis llamada PokeAPI, así que no hay que guardar nada a
+mano: la página los pide sola cada vez que entras.
 
-Currently, two official plugins are available:
+## ¿Qué tiene la página?
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Un menú a la izquierda para moverte entre **Inicio** y **Pokémons**.
+- Una lista de Pokémon en tarjetas, cada una con su número, su foto, su nombre y sus tipos.
+- Filtros en la sección de Pokémon:
+  - Por **tipo** (fuego, agua, planta, etc.).
+  - Por **letra inicial** (si eliges la A, solo aparecen los que empiezan por A).
+  - Por **orden del nombre** (de la A a la Z o al revés).
+- Se ve bien tanto en computadora como en celular (en el celular el menú se abre con el botón ☰).
 
-## React Compiler
+## ¿Con qué está hecho?
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **React** con **TypeScript** (la base de la página).
+- **Vite** (la herramienta que la levanta y la arma).
+- **Tailwind CSS** (para los estilos y colores).
+- **React Router** (para cambiar entre páginas sin recargar).
 
-## Expanding the ESLint configuration
+## ¿Cómo hacerlo funcionar?
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Necesitas tener instalado **Node.js**. Después, abre una terminal en la carpeta del
+proyecto y escribe:
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1. Instalar todo lo que necesita el proyecto:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+   ```bash
+   npm install
+   ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+2. Levantar la página en tu computadora:
 
-```
+   ```bash
+   npm run dev
+   ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+3. Abre en el navegador la dirección que aparece en la terminal (normalmente
+   `http://localhost:5173`).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## ¿Cómo está organizado?
 
 ```
+src/
+├── components/            (piezas que se repiten)
+│   ├── Layout.tsx         -> el marco: menú + barra de arriba
+│   ├── Sidebar.tsx        -> el menú de la izquierda
+│   ├── Navbar.tsx         -> la barra de arriba
+│   └── TarjetaPokemon.tsx -> la tarjeta de cada Pokémon
+├── pages/                 (las páginas)
+│   ├── Inicio.tsx         -> la página de bienvenida
+│   └── Pokemons.tsx       -> la lista con los filtros
+├── App.tsx                -> decide qué página mostrar
+└── main.tsx               -> el punto donde arranca todo
+```
+
+## ¿De dónde salen los datos?
+
+De la PokeAPI: https://pokeapi.co
+La dirección que usamos es: https://pokeapi.co/api/v2/pokemon?limit=151
