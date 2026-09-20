@@ -27,27 +27,27 @@ function App() {
   return (
     <AuthProvider> {/* Proveedor de Autenticación */}
       <CartProvider> {/* Proveedor del Carrito */}
-       <SidebarProvider> {/* Proveedor del estado global del Sidebar */}
-        <BrowserRouter>
-          <Routes>
-            {/* Ruta pública */}
-            <Route path="/login" element={<Login />} />
+        <SidebarProvider> {/* Proveedor del estado global del Sidebar */}
+          <BrowserRouter>
+            <Routes>
+              {/* Ruta pública */}
+              <Route path="/login" element={<Login />} />
 
-            {/* Rutas protegidas */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="catalogo" element={<Catalogo />} />
-                <Route path="mi-red" element={<MiRed />} />
-                <Route path="carrito" element={<Carrito />} />
+              {/* Rutas protegidas */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="catalogo" element={<Catalogo />} />
+                  <Route path="mi-red" element={<MiRed />} />
+                  <Route path="carrito" element={<Carrito />} />
+                </Route>
               </Route>
-            </Route>
             
-            {/* Ruta comodín para capturar 404 y redirigir */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-       </SidebarProvider>
+              {/* Ruta comodín para capturar 404 y redirigir */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </SidebarProvider>
       </CartProvider>
     </AuthProvider>
   );
