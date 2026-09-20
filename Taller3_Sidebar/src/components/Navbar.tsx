@@ -16,8 +16,8 @@ const Navbar = () => {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
-      <div className="flex items-center gap-4">
+    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8">
+      <div className="flex items-center gap-2 md:gap-4 min-w-0">
         {/* Botón Toggle: colapsa / expande el Sidebar */}
         <button
           onClick={toggleSidebar}
@@ -27,11 +27,11 @@ const Navbar = () => {
         >
           <MenuIcon className="w-6 h-6" />
         </button>
-        <h2 className="text-slate-600 font-medium text-lg">
+        <h2 className="text-slate-600 font-medium text-base md:text-lg truncate">
           Panel de Administración
         </h2>
       </div>
-      <div className="flex items-end gap-6">
+      <div className="flex items-end gap-3 md:gap-6">
         <Link
           to="/carrito"
           className="relative p-2 hover:bg-slate-100 rounded-full transition"
@@ -45,10 +45,10 @@ const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-4">
-          <span className="text-sm text-slate-500">{userEmail}</span>
+          <span className="hidden sm:inline text-sm text-slate-500">{userEmail}</span>
 
           {/* Contenedor relativo con la clase 'group' para detectar el hover */}
-          <div className="relative group cursor-pointer pb-2">
+          <div tabIndex={0} className="relative group cursor-pointer pb-2 outline-none">
             {/* Círculo del usuario / Avatar */}
             <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden border border-slate-300 flex items-center justify-center">
               {/* 
@@ -64,7 +64,7 @@ const Navbar = () => {
             </div>
 
             {/* Menú desplegable */}
-            <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+            <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50">
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 font-semibold hover:bg-red-50 rounded-md transition-colors"

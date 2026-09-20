@@ -17,7 +17,7 @@ const Carrito = () => {
           {/* Lista de productos */}
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => (
-              <div key={item.id} className="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+              <div key={item.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
                 <div className="flex items-center gap-4">
                   <img src={item.img} alt={item.nombre} className="w-16 h-16 object-cover rounded-md" />
                   <div>

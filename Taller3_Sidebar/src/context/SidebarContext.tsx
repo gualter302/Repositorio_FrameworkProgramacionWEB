@@ -5,7 +5,11 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 interface SidebarContextType {
   isCollapsed: boolean;      // true = sidebar reducido (solo iconos)
   toggleSidebar: () => void; // alterna entre colapsado y expandido
+  closeOnMobile: () => void; // cierra el menú deslizable (solo aplica en celular)
 }
+
+// Debe coincidir con el breakpoint "md" de Tailwind (768px)
+const MOBILE_BREAKPOINT = 768;
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
@@ -22,12 +26,20 @@ interface SidebarProviderProps {
 }
 
 export const SidebarProvider = ({ children }: SidebarProviderProps) => {
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  // En celular el sidebar empieza cerrado; en escritorio, expandido.
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(
+    () => window.innerWidth < MOBILE_BREAKPOINT
+  );
 
   const toggleSidebar = () => setIsCollapsed((prev) => !prev);
 
+  // En celular, al elegir una opción del menú lo cerramos; en escritorio no hace nada.
+  const closeOnMobile = () => {
+    if (window.innerWidth < MOBILE_BREAKPOINT) setIsCollapsed(true);
+  };
+
   return (
-    <SidebarContext.Provider value={{ isCollapsed, toggleSidebar }}>
+    <SidebarContext.Provider value={{ isCollapsed, toggleSidebar, closeOnMobile }}>
       {children}
     </SidebarContext.Provider>
   );
