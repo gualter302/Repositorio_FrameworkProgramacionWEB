@@ -2,6 +2,9 @@
 package main
 
 import (
+	// Importamos "os" para leer variables de entorno (por ejemplo, los orígenes permitidos por CORS).
+	"os"
+
 	// Importamos el framework principal Fiber.
 	"github.com/gofiber/fiber/v2"
 	// Importamos el middleware CORS para gestionar la seguridad entre distintos puertos/dominios.
@@ -15,12 +18,22 @@ func main() {
 	// Instanciamos una nueva aplicación de Fiber y la guardamos en la variable 'app'.
 	app := fiber.New()
 
+	// Orígenes (frontends) autorizados a consumir esta API, separados por coma.
+	// Por defecto: el servidor de desarrollo de Vite en localhost. Si el frontend corre en otra
+	// dirección (ej. la IP del laboratorio), se cambia SIN tocar el código:
+	//   ALLOWED_ORIGINS="http://172.17.82.108:5173" go run .
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOrigins == "" {
+		allowedOrigins = "http://localhost:5173,http://127.0.0.1:5173"
+	}
+
 	// Implementamos el middleware CORS a nivel global usando app.Use() para interceptar todas las peticiones entrantes.
 	app.Use(cors.New(cors.Config{
-		// Configuramos el CORS para permitir únicamente peticiones provenientes del frontend local en el puerto 5173.
-		AllowOrigins: "http://172.17.82.108:5173",
+		// Permitimos únicamente peticiones provenientes de los frontends autorizados (ver allowedOrigins).
+		AllowOrigins: allowedOrigins,
 		// Declaramos de forma explícita qué cabeceras (Headers) se permitirán en la comunicación.
-		AllowHeaders: "Origin, Content-Type, Accept",
+		// Authorization se incluye para poder enviar el token en peticiones futuras.
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
 	// Llamamos a la función SetupRoutes de nuestro paquete 'routes', enviándole la instancia de nuestra 'app'.
