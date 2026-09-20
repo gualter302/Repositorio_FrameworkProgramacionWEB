@@ -4,7 +4,8 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 interface AuthContextType {
   isAuthenticated: boolean;
   userEmail: string | null; // <-- 1. Nuevo estado para el correo
-  login: (email: string) => void; // <-- 2. La función ahora recibe el correo
+  token: string | null; // Token que devuelve la API al iniciar sesión
+  login: (email: string, token: string) => void; // <-- 2. Recibe el correo y el token de la API
   logout: () => void;
 }
 
@@ -25,20 +26,23 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string | null>(null); // <-- 3. Estado local
+  const [token, setToken] = useState<string | null>(null);
 
   // 4. Actualizamos las funciones
-  const login = (email: string) => {
+  const login = (email: string, token: string) => {
     setIsAuthenticated(true);
     setUserEmail(email); // Guardamos el correo
+    setToken(token); // Guardamos el token
   };
   
   const logout = () => {
     setIsAuthenticated(false);
     setUserEmail(null); // Limpiamos el correo al salir
+    setToken(null); // Limpiamos el token al salir
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, userEmail, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

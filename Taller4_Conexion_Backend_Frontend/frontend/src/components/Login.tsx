@@ -2,25 +2,32 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { loginRequest } from '../services/api';
 
 const Login = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false); // true mientras se espera la respuesta
   
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Simulación de validación hardcodeada (A futuro se reemplazará por llamada a API)
-    if (email === 'admin@upse.edu.ec' && password === '123456') {
-      setError('');
-      login(email); // Cambiamos el estado global a autenticado
+    setError('');
+    setLoading(true);
+
+    try {
+      // Llamada real al backend: POST /api/login (ver src/services/api.ts)
+      const data = await loginRequest(email, password);
+      login(data.email, data.token); // Guardamos correo y token en el estado global
       navigate('/'); // Redirigimos al Dashboard
-    } else {
-      setError('Credenciales incorrectas. Usa admin@upse.edu.ec / 123456');
+    } catch (err) {
+      // Muestra el mensaje del backend ("Credenciales incorrectas") o el de conexión
+      setError(err instanceof Error ? err.message : 'Error inesperado al iniciar sesión');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,9 +72,10 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition"
+            disabled={loading}
+            className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Iniciar Sesión
+            {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
       </div>
