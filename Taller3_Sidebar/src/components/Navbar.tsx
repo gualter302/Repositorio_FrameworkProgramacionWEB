@@ -1,10 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { useSidebar } from "../context/SidebarContext";
+import { MenuIcon } from "../icons";
 
 const Navbar = () => {
   const { totalItems } = useCart();
   const { logout, userEmail } = useAuth();
+  const { toggleSidebar } = useSidebar(); // estado global del sidebar
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -14,9 +17,20 @@ const Navbar = () => {
 
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
-      <h2 className="text-slate-600 font-medium text-lg">
-        Panel de Administración
-      </h2>
+      <div className="flex items-center gap-4">
+        {/* Botón Toggle: colapsa / expande el Sidebar */}
+        <button
+          onClick={toggleSidebar}
+          aria-label="Alternar menú lateral"
+          title="Alternar menú lateral"
+          className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
+        >
+          <MenuIcon className="w-6 h-6" />
+        </button>
+        <h2 className="text-slate-600 font-medium text-lg">
+          Panel de Administración
+        </h2>
+      </div>
       <div className="flex items-end gap-6">
         <Link
           to="/carrito"
