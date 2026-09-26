@@ -6,7 +6,7 @@ import { MenuIcon } from "../icons";
 
 const Navbar = () => {
   const { totalItems } = useCart();
-  const { logout, userEmail } = useAuth();
+  const { logout, user } = useAuth();
   const { toggleSidebar } = useSidebar(); // estado global del sidebar
   const navigate = useNavigate();
 
@@ -45,7 +45,7 @@ const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-4">
-          <span className="hidden sm:inline text-sm text-slate-500">{userEmail}</span>
+          <span className="hidden sm:inline text-sm text-slate-500">{user?.email}</span>
 
           {/* Contenedor relativo con la clase 'group' para detectar el hover */}
           <div tabIndex={0} className="relative group cursor-pointer pb-2 outline-none">

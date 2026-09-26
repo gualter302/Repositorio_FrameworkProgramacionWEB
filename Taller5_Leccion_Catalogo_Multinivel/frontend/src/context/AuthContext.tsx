@@ -1,11 +1,20 @@
 // src/context/AuthContext.tsx
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
+// 1. Tipos de rol que maneja la aplicación (Tema 5)
+export type Rol = 'admin' | 'cliente';
+
+// 2. Usuario autenticado: correo + rol (lo entrega la API en POST /api/login)
+export interface Usuario {
+  email: string;
+  rol: Rol;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
-  userEmail: string | null; // <-- 1. Nuevo estado para el correo
+  user: Usuario | null; // Usuario completo (correo + rol)
   token: string | null; // Token que devuelve la API al iniciar sesión
-  login: (email: string, token: string) => void; // <-- 2. Recibe el correo y el token de la API
+  login: (usuario: Usuario, token: string) => void;
   logout: () => void;
 }
 
@@ -25,24 +34,23 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null); // <-- 3. Estado local
+  const [user, setUser] = useState<Usuario | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  // 4. Actualizamos las funciones
-  const login = (email: string, token: string) => {
+  const login = (usuario: Usuario, token: string) => {
     setIsAuthenticated(true);
-    setUserEmail(email); // Guardamos el correo
+    setUser(usuario); // Guardamos correo y rol
     setToken(token); // Guardamos el token
   };
-  
+
   const logout = () => {
     setIsAuthenticated(false);
-    setUserEmail(null); // Limpiamos el correo al salir
+    setUser(null); // Limpiamos el usuario al salir
     setToken(null); // Limpiamos el token al salir
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, token, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

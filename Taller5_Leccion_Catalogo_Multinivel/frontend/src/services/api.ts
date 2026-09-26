@@ -11,6 +11,7 @@ export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost
 export interface LoginResponse {
   token: string;
   email: string;
+  rol: string; // "admin" | "cliente" (Tema 5)
 }
 
 // Petición genérica: hace el fetch, convierte a JSON y lanza un Error si algo sale mal.
