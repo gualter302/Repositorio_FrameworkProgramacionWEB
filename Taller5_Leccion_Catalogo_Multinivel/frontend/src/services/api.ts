@@ -1,7 +1,7 @@
 // src/services/api.ts
 // Único lugar donde el frontend habla con el backend (Go + Fiber).
 // Ningún componente usa fetch directamente: todos llaman a las funciones de este archivo.
-import type { Producto } from '../context/CartContext';
+import type { Producto } from '../data/productos';
 
 // URL base de la API. Se puede cambiar con la variable VITE_API_URL (archivo .env);
 // si no existe, se usa el backend local en el puerto 3000.
@@ -41,5 +41,10 @@ export const loginRequest = (email: string, password: string) =>
     body: JSON.stringify({ email, password }),
   });
 
+// Forma de cada producto que devuelve hoy GET /api/productos (prodController.go):
+// solo los campos básicos. El catálogo del Tema 5 usa el mock de productosService
+// (con descripción, categoría y galería) hasta que la API los entregue en la Unidad 2.
+export type ProductoApi = Pick<Producto, 'id' | 'nombre' | 'precio' | 'img'>;
+
 // GET /api/productos
-export const getProductos = () => request<Producto[]>('/productos');
+export const getProductos = () => request<ProductoApi[]>('/productos');
