@@ -1,6 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 import { NavLink } from "react-router-dom";
-import { CatalogoIcon, DashboardIcon, RedIcon } from "../icons";
+import { CatalogoIcon, DashboardIcon, RedIcon, TiendaIcon } from "../icons";
+import { useAuth } from "../context/AuthContext";
 
 // Props del Sidebar: isCollapsed = true -> ancho de 80px y solo iconos.
 interface SidebarProps {
@@ -12,16 +13,23 @@ interface MenuItem {
   to: string;
   label: string;
   Icon: ComponentType<SVGProps<SVGSVGElement>>;
+  soloAdmin?: boolean; // true = solo lo ve el rol admin (Tema 5)
 }
 
 // Opciones del menú (cada una con su icono)
 const menuItems: MenuItem[] = [
-  { to: "/", label: "Dashboard", Icon: DashboardIcon },
+  { to: "/", label: "Dashboard", Icon: DashboardIcon, soloAdmin: true },
+  { to: "/tienda", label: "Tienda", Icon: TiendaIcon },
   { to: "/catalogo", label: "Catálogo", Icon: CatalogoIcon },
-  { to: "/mi-red", label: "Mi Red", Icon: RedIcon },
+  { to: "/mi-red", label: "Mi Red", Icon: RedIcon, soloAdmin: true },
 ];
 
 const Sidebar = ({ isCollapsed, onNavigate }: SidebarProps) => {
+  const { user } = useAuth();
+
+  // Filtramos las opciones según el rol: el cliente no ve Dashboard ni Mi Red
+  const items = menuItems.filter((item) => !item.soloAdmin || user?.rol === "admin");
+
   return (
     <aside
       // Celular: panel fijo que se desliza desde la izquierda (oculto si isCollapsed).
@@ -40,7 +48,7 @@ const Sidebar = ({ isCollapsed, onNavigate }: SidebarProps) => {
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
-        {menuItems.map(({ to, label, Icon }) => (
+        {items.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
             to={to}
@@ -59,6 +67,19 @@ const Sidebar = ({ isCollapsed, onNavigate }: SidebarProps) => {
           </NavLink>
         ))}
       </nav>
+
+      {/* Pie: rol con el que se inició sesión */}
+      <div className="p-4 border-t border-slate-700 text-xs text-slate-300 whitespace-nowrap">
+        {isCollapsed ? (
+          <p className="text-center uppercase" title={`Conectado como ${user?.rol ?? ""}`}>
+            {user?.rol === "admin" ? "ADM" : "CLI"}
+          </p>
+        ) : (
+          <p>
+            Conectado como <span className="font-semibold uppercase">{user?.rol}</span>
+          </p>
+        )}
+      </div>
     </aside>
   );
 };

@@ -6,7 +6,7 @@ import { MenuIcon } from "../icons";
 
 const Navbar = () => {
   const { totalItems } = useCart();
-  const { logout, userEmail } = useAuth();
+  const { logout, user } = useAuth();
   const { toggleSidebar } = useSidebar(); // estado global del sidebar
   const navigate = useNavigate();
 
@@ -28,7 +28,7 @@ const Navbar = () => {
           <MenuIcon className="w-6 h-6" />
         </button>
         <h2 className="text-slate-600 font-medium text-base md:text-lg truncate">
-          Panel de Administración
+          {user?.rol === "admin" ? "Panel de Administración" : "Tienda MultiCatálogo"}
         </h2>
       </div>
       <div className="flex items-end gap-3 md:gap-6">
@@ -45,7 +45,15 @@ const Navbar = () => {
         </Link>
 
         <div className="flex items-center gap-4">
-          <span className="hidden sm:inline text-sm text-slate-500">{userEmail}</span>
+          <span className="hidden sm:inline text-sm text-slate-500">{user?.email}</span>
+          {/* Insignia del rol (admin en ámbar, cliente en índigo) */}
+          <span
+            className={`hidden md:inline-block text-xs font-semibold px-2 py-1 rounded-full uppercase ${
+              user?.rol === "admin" ? "bg-amber-100 text-amber-700" : "bg-indigo-100 text-indigo-700"
+            }`}
+          >
+            {user?.rol}
+          </span>
 
           {/* Contenedor relativo con la clase 'group' para detectar el hover */}
           <div tabIndex={0} className="relative group cursor-pointer pb-2 outline-none">

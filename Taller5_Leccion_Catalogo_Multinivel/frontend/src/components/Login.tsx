@@ -1,8 +1,9 @@
 // src/components/Login.tsx
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, type Rol } from '../context/AuthContext';
 import { loginRequest } from '../services/api';
+import { rutaInicioPorRol } from '../utils/rutas';
 
 const Login = () => {
   const [email, setEmail] = useState<string>('');
@@ -21,8 +22,13 @@ const Login = () => {
     try {
       // Llamada real al backend: POST /api/login (ver src/services/api.ts)
       const data = await loginRequest(email, password);
-      login(data.email, data.token); // Guardamos correo y token en el estado global
-      navigate('/'); // Redirigimos al Dashboard
+      // La API devuelve el rol (admin | cliente) junto al correo (Tema 5).
+      // Normalizamos: cualquier valor distinto de "admin" se trata como cliente.
+      const rol: Rol = data.rol === 'admin' ? 'admin' : 'cliente';
+      login({ email: data.email, rol }, data.token); // Guardamos usuario (correo + rol) y token
+
+      // Redirigimos según el rol: admin al Dashboard, cliente a su vista de compra
+      navigate(rutaInicioPorRol(rol));
     } catch (err) {
       // Muestra el mensaje del backend ("Credenciales incorrectas") o el de conexión
       setError(err instanceof Error ? err.message : 'Error inesperado al iniciar sesión');
@@ -78,6 +84,13 @@ const Login = () => {
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
+
+        {/* Cuentas de prueba que acepta el backend (authController.go) */}
+        <div className="mt-6 p-4 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-600 space-y-1">
+          <p className="font-semibold text-slate-700">Cuentas de prueba:</p>
+          <p>👑 Admin: <span className="font-mono">admin@upse.edu.ec / 123456</span></p>
+          <p>🛍️ Cliente: <span className="font-mono">cliente@upse.edu.ec / 123456</span></p>
+        </div>
       </div>
     </div>
   );
