@@ -8,6 +8,8 @@ import Storefront from './components/Storefront';
 import DetalleProducto from './components/DetalleProducto';
 import MiRed from './components/MiRed';
 import Carrito from './components/Carrito';
+import Checkout from './components/Checkout';
+import Confirmacion from './components/Confirmacion';
 import Login from './components/Login';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -44,7 +46,7 @@ const AdminRoute = () => {
 };
 
 // Proveedor intermedio del carrito: al cambiar de usuario se remonta con key,
-// de modo que cada cuenta tenga SU propio carrito (se persiste en el Paso 10).
+// de modo que cada cuenta lea y persista SU propio carrito en localStorage (Paso 10).
 const CartBoundary = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   return <CartProvider key={user?.email ?? 'anonimo'}>{children}</CartProvider>;
@@ -74,6 +76,8 @@ function App() {
                   <Route path="catalogo" element={<Catalogo />} />
                   <Route path="producto/:id" element={<DetalleProducto />} />
                   <Route path="carrito" element={<Carrito />} />
+                  <Route path="checkout" element={<Checkout />} />
+                  <Route path="confirmacion" element={<Confirmacion />} />
                 </Route>
               </Route>
 
