@@ -3,8 +3,8 @@
 // o cuando intenta entrar a una ruta que su rol no puede ver.
 import type { Rol } from '../context/AuthContext';
 
-// Vista por defecto del cliente (la tienda a pantalla completa se agrega en el Paso 7)
-export const INICIO_CLIENTE = '/catalogo';
+// Vista por defecto del cliente: la tienda a pantalla completa (Paso 7)
+export const INICIO_CLIENTE = '/tienda';
 
-// Admin -> Dashboard ("/"), cliente -> su vista de compra
+// Admin -> Dashboard ("/"), cliente -> Tienda
 export const rutaInicioPorRol = (rol: Rol): string => (rol === 'admin' ? '/' : INICIO_CLIENTE);
