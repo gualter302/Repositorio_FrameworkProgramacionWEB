@@ -1,0 +1,4 @@
+*.exe
+tmp/
+.gocache/
+.env

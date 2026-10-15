@@ -10,7 +10,7 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - Backend: Go con Fiber, respuestas JSON y CORS para el frontend local.
 - Pruebas: `go test` para las rutas del backend; ESLint y compilación de Vite para el frontend.
 - Puertos locales: frontend `5173`; backend `3000`.
-- Datos actuales: arreglos en memoria; PostgreSQL y Redis todavía están pendientes.
+- Datos actuales: PostgreSQL como fuente principal y Redis como caché desde las fases 2 y 3.
 
 ## Archivos de orientación
 
@@ -63,6 +63,16 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - `Taller5_Fase1_Arquitectura_API_Robusta/backend/models/models.go`: modelos y `APIError`.
 - `Taller5_Fase1_Arquitectura_API_Robusta/backend/repository/repository.go`: datos en memoria.
 - `Taller5_Fase1_Arquitectura_API_Robusta/backend/routes/routes_test.go`: pruebas de rutas.
+
+## Unidad 2 Fases 2, 3 y 4
+
+- `Unidad2_Fase2_Persistencia_PostgreSQL/`: Fase 1 más persistencia en PostgreSQL.
+- `Unidad2_Fase3_Cache_Redis/`: Fases 1 y 2 más caché de catálogo y red.
+- `Unidad2_Fase4_Checkout_Concurrencia/`: Fases 1, 2 y 3 más checkout transaccional.
+- `Unidad2_Fase4_Checkout_Concurrencia/backend/repository/postgres.go`: pedido, stock y comisiones.
+- `Unidad2_Fase4_Checkout_Concurrencia/backend/controllers/dependencies.go`: dependencias comprobables.
+- `Unidad2_Fase4_Checkout_Concurrencia/frontend/src/components/Checkout.tsx`: compra conectada a la API.
+- `Unidad2_Fase4_Checkout_Concurrencia/README.md`: ejecución y prueba segura de reversión.
 
 ## Comandos puntuales
 

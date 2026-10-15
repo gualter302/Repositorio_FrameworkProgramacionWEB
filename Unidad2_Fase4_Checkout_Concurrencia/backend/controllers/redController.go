@@ -1,0 +1,28 @@
+package controllers
+
+import (
+	"strings"
+
+	"github.com/gofiber/fiber/v2"
+)
+
+// GetRed devuelve la red de referidos reconstruida como un árbol multinivel.
+func (api *API) GetRed(c *fiber.Ctx) error {
+	emailUsuario := strings.ToLower(strings.TrimSpace(c.Query("email")))
+	if emailUsuario == "" {
+		emailUsuario = "admin@upse.edu.ec"
+	}
+
+	if red, encontrada := api.cache.ObtenerRed(c.Context(), emailUsuario); encontrada {
+		c.Set("X-Cache", estadoCache(true))
+		return c.JSON(red)
+	}
+
+	red, err := api.datos.ObtenerRed(c.Context())
+	if err != nil {
+		return responderError(c, fiber.StatusInternalServerError, "No se pudo obtener la red de referidos", nil)
+	}
+	api.cache.GuardarRed(c.Context(), emailUsuario, red)
+	c.Set("X-Cache", estadoCache(false))
+	return c.JSON(red)
+}
