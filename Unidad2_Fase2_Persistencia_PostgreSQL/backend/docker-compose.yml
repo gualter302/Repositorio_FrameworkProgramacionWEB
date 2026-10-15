@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:16
+    container_name: multicatalogo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-multicatalogo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-multicatalogo}
+      POSTGRES_DB: ${DB_NAME:-multicatalogo}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # init.sql solo se ejecuta la primera vez que se crea el volumen de datos.
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-multicatalogo} -d ${DB_NAME:-multicatalogo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
