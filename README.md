@@ -9,3 +9,13 @@
 | `Taller5_Leccion_Catalogo_Multinivel/` | Lección Tema 5: roles admin/cliente, tienda a pantalla completa, catálogo con filtros, detalle con lightbox, carrito persistente, checkout, red multinivel y dashboard |
 
 Cada carpeta tiene su propio `README.md` con las instrucciones para ejecutarla.
+
+## Taller 6 - Ahorro de tokens
+
+Este taller agrega archivos de orientación en la raíz para encontrar rápidamente el código,
+conocer el avance real y evitar lecturas innecesarias:
+
+- `PROJECT_MAP.md`: mapa compacto de carpetas y archivos importantes.
+- `REQUIREMENTS_CHECKLIST.md`: requisitos terminados y pendientes.
+- `AGENTS.md`: instrucciones que Codex carga automáticamente al trabajar en el repositorio.
+- `CODEX_SETUP.md`: pasos opcionales para agregar Playwright y memoria a Codex.
