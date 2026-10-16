@@ -99,6 +99,10 @@ func (d *datosFalsos) LiquidarComisiones(context.Context, []int64) (models.Liqui
 	return models.Liquidacion{ID: 1, Monto: 10}, nil
 }
 
+func (d *datosFalsos) ObtenerReporteGeneral(context.Context) (models.ReporteGeneral, error) {
+	return models.ReporteGeneral{}, nil
+}
+
 func (d *datosFalsos) ObtenerRed(context.Context, string) ([]*models.Referido, error) {
 	return []*models.Referido{{ID: 1, Nombre: "Administrador", Hijos: []*models.Referido{}}}, nil
 }

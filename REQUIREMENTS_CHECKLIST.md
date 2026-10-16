@@ -4,7 +4,7 @@
 
 - **Hito actual:** Taller 7, registro y red de referidos terminado y verificado.
 - **Última tarea completada:** CRUD administrativo de productos con permisos y desactivación lógica.
-- **Siguiente tarea pendiente:** reportes y operación administrativa.
+- **Siguiente tarea pendiente:** revisión de accesibilidad y pruebas manuales finales.
 - **Base recomendada:** `Taller7_Registro_Referidos/`.
 - **Fuentes disponibles:** guía práctica, planificación, análisis funcional y README de cada taller.
 - **Fuentes faltantes:** `Planificacion_Unidad1_Tema5.md` y `Silabo_Framework_Programacion_Web.md`.
@@ -129,6 +129,12 @@
 - [x] Mostrar comisiones propias con sus estados.
 - [x] Crear liquidaciones sin permitir pagos duplicados.
 
+## Reportes y operación
+
+- [x] Calcular ventas, pedidos, ticket promedio y comisiones desde PostgreSQL.
+- [x] Mostrar productos y referidos principales en el Dashboard administrativo.
+- [x] Mostrar comisiones pendientes de pago.
+
 ## Verificación y entrega
 
 - [x] Ejecutar `go test ./...` en el backend de la Fase 1.
@@ -142,5 +148,6 @@
 - [x] Probar CRUD de productos, rechazo del cliente y desactivación lógica.
 - [x] Probar historial del cliente, listado administrativo y cancelación con devolución de stock.
 - [x] Probar consulta de comisiones, liquidación y rechazo de duplicados.
+- [x] Probar reporte general y rechazo al acceso de un cliente.
 - [ ] Verificar navegación por teclado, textos alternativos y contraste.
 - [ ] Actualizar este checklist inmediatamente después de cada prueba exitosa.

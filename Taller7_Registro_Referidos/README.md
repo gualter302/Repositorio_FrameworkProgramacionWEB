@@ -17,6 +17,7 @@ propio lugar dentro de la red multinivel.
 - CRUD de productos para administradores, con desactivación lógica e invalidación del catálogo en Redis.
 - Historial de pedidos para clientes y panel administrativo con búsqueda, paginación, estados y cancelación transaccional.
 - Libro auditable de comisiones, consulta personal y liquidaciones protegidas contra duplicados.
+- Reporte administrativo de ventas, pedidos, ticket promedio, comisiones y productos principales.
 
 ## Iniciar el backend
 
@@ -63,6 +64,7 @@ Los códigos iniciales incluyen `ADMIN`, `ANA`, `LUIS`, `MARIA`, `CARLOS` y `DEM
 - Cliente intentando administrar productos: 403.
 - Cliente consultando `/api/pedidos`: solo recibe sus propios pedidos.
 - Liquidación repetida de una comisión: 409.
+- Cliente intentando consultar reportes administrativos: 403.
 
 ## Pruebas
 

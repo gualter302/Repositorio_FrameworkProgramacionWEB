@@ -80,6 +80,16 @@ export interface Comision {
   pagadaEn?: string;
 }
 
+export interface ReporteGeneral {
+  totalVentas: number;
+  totalPedidos: number;
+  ticketPromedio: number;
+  totalComisiones: number;
+  pendientePagar: number;
+  productosPrincipales: { nombre: string; cantidad: number; ventas: number }[];
+  referidosPrincipales: { nombre: string; ventas: number; comisiones: number }[];
+}
+
 // Petición genérica: hace el fetch, convierte a JSON y lanza un Error si algo sale mal.
 const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
   let response: Response;
@@ -180,3 +190,5 @@ export const liquidarComisiones = (comisionIds: number[]) =>
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ comisionIds }),
   });
+
+export const getReporteGeneral = () => request<ReporteGeneral>('/admin/reportes/general');

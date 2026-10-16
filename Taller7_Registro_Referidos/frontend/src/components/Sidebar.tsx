@@ -27,7 +27,7 @@ const menuItems: MenuItem[] = [
 const Sidebar = ({ isCollapsed, onNavigate }: SidebarProps) => {
   const { role } = useAuth();
   const items = role === "admin"
-    ? [...menuItems, { to: "/admin/productos", label: "Productos", Icon: CatalogoIcon }, { to: "/admin/pedidos", label: "Pedidos", Icon: CatalogoIcon }, { to: "/admin/comisiones", label: "Comisiones", Icon: CatalogoIcon }]
+    ? [...menuItems, { to: "/admin/productos", label: "Productos", Icon: CatalogoIcon }, { to: "/admin/pedidos", label: "Pedidos", Icon: CatalogoIcon }, { to: "/admin/comisiones", label: "Comisiones", Icon: CatalogoIcon }, { to: "/admin/reportes", label: "Reportes", Icon: CatalogoIcon }]
     : menuItems;
   return (
     <aside

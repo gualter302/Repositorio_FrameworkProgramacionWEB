@@ -1,9 +1,0 @@
-# Ejemplo opcional para la configuración personal ~/.codex/config.toml
-
-[mcp_servers.playwright]
-command = "npx"
-args = ["-y", "@playwright/mcp"]
-
-[mcp_servers.memory]
-command = "npx"
-args = ["-y", "@modelcontextprotocol/server-memory"]

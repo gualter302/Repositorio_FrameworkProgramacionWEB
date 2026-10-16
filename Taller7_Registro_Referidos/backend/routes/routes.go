@@ -28,4 +28,5 @@ func SetupRoutes(app *fiber.App, api *controllers.API, secret string) {
 	admin.Post("/pedidos/:id/cancelar", api.CancelarPedido)
 	admin.Get("/comisiones", api.AdminComisiones)
 	admin.Post("/liquidaciones", api.LiquidarComisiones)
+	admin.Get("/reportes/general", api.ReporteGeneral)
 }

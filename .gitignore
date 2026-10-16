@@ -1,0 +1,22 @@
+# Dependencias y salidas generadas
+node_modules/
+dist/
+coverage/
+*.log
+
+# Configuración local y secretos
+.env
+.env.*
+!.env.example
+.codex/
+.copilot/
+.vscode/
+
+# Archivos temporales de agentes y herramientas
+.github/agents/
+.github/prompts/
+*.local.md
+*.local.json
+
+# Datos locales de Docker
+Taller7_Registro_Referidos/backend/.docker-data/

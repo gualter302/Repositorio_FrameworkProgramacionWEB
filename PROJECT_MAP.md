@@ -89,6 +89,9 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - `Taller7_Registro_Referidos/frontend/src/components/AdminPedidos.tsx`: gestión administrativa de pedidos.
 - `Taller7_Registro_Referidos/frontend/src/components/Comisiones.tsx`: comisiones del usuario autenticado.
 - `Taller7_Registro_Referidos/frontend/src/components/AdminComisiones.tsx`: libro y liquidación administrativa.
+- `Taller7_Registro_Referidos/frontend/src/components/AdminReportes.tsx`: ventas, pedidos, ticket y rankings.
+- `Taller7_Registro_Referidos/backend/controllers/reportController.go`: endpoint de reportes administrativos.
+- `Taller7_Registro_Referidos/backend/database/006_comisiones_liquidaciones.sql`: estados y liquidaciones de comisiones.
 
 ## Comandos puntuales
 

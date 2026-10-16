@@ -721,3 +721,66 @@ func (r *PostgresRepository) LiquidarComisiones(ctx context.Context, ids []int64
 	}
 	return liquidacion, nil
 }
+
+func (r *PostgresRepository) ObtenerReporteGeneral(ctx context.Context) (models.ReporteGeneral, error) {
+	var reporte models.ReporteGeneral
+	if err := r.pool.QueryRow(ctx, `
+		SELECT COALESCE(SUM(total), 0), COUNT(*), COALESCE(AVG(total), 0)
+		FROM pedidos WHERE estado <> 'cancelado'`,
+	).Scan(&reporte.TotalVentas, &reporte.TotalPedidos, &reporte.TicketPromedio); err != nil {
+		return models.ReporteGeneral{}, err
+	}
+	if err := r.pool.QueryRow(ctx, `
+		SELECT COALESCE(SUM(monto), 0), COALESCE(SUM(monto) FILTER (WHERE estado = 'pendiente'), 0)
+		FROM comisiones`,
+	).Scan(&reporte.TotalComisiones, &reporte.PendientePagar); err != nil {
+		return models.ReporteGeneral{}, err
+	}
+
+	productos, err := r.pool.Query(ctx, `
+		SELECT pi.nombre, SUM(pi.cantidad)::int, SUM(pi.subtotal)
+		FROM pedido_items pi JOIN pedidos p ON p.id = pi.pedido_id
+		WHERE p.estado <> 'cancelado'
+		GROUP BY pi.producto_id, pi.nombre
+		ORDER BY SUM(pi.cantidad) DESC, SUM(pi.subtotal) DESC
+		LIMIT 5`)
+	if err != nil {
+		return models.ReporteGeneral{}, err
+	}
+	reporte.ProductosPrincipales = make([]models.ProductoReporte, 0)
+	for productos.Next() {
+		var producto models.ProductoReporte
+		if err := productos.Scan(&producto.Nombre, &producto.Cantidad, &producto.Ventas); err != nil {
+			productos.Close()
+			return models.ReporteGeneral{}, err
+		}
+		reporte.ProductosPrincipales = append(reporte.ProductosPrincipales, producto)
+	}
+	if err := productos.Err(); err != nil {
+		productos.Close()
+		return models.ReporteGeneral{}, err
+	}
+	productos.Close()
+
+	referidos, err := r.pool.Query(ctx, `
+		SELECT nombre, ventas, comisiones
+		FROM referidos ORDER BY ventas DESC, comisiones DESC LIMIT 5`)
+	if err != nil {
+		return models.ReporteGeneral{}, err
+	}
+	reporte.ReferidosPrincipales = make([]models.ReferidoReporte, 0)
+	for referidos.Next() {
+		var referido models.ReferidoReporte
+		if err := referidos.Scan(&referido.Nombre, &referido.Ventas, &referido.Comisiones); err != nil {
+			referidos.Close()
+			return models.ReporteGeneral{}, err
+		}
+		reporte.ReferidosPrincipales = append(reporte.ReferidosPrincipales, referido)
+	}
+	if err := referidos.Err(); err != nil {
+		referidos.Close()
+		return models.ReporteGeneral{}, err
+	}
+	referidos.Close()
+	return reporte, nil
+}

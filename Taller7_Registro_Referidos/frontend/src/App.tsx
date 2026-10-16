@@ -14,6 +14,7 @@ import Pedidos from './components/Pedidos';
 import AdminPedidos from './components/AdminPedidos';
 import Comisiones from './components/Comisiones';
 import AdminComisiones from './components/AdminComisiones';
+import AdminReportes from './components/AdminReportes';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SidebarProvider } from './context/SidebarContext';
@@ -62,6 +63,7 @@ function App() {
                     <Route path="admin/productos" element={<AdminProductos />} />
                     <Route path="admin/pedidos" element={<AdminPedidos />} />
                     <Route path="admin/comisiones" element={<AdminComisiones />} />
+                    <Route path="admin/reportes" element={<AdminReportes />} />
                   </Route>
                 </Route>
               </Route>

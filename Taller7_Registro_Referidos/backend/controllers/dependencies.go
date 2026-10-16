@@ -24,6 +24,7 @@ type DataRepository interface {
 	ObtenerComisionesUsuario(context.Context, string) ([]models.Comision, error)
 	ObtenerTodasLasComisiones(context.Context, string) ([]models.Comision, error)
 	LiquidarComisiones(context.Context, []int64) (models.Liquidacion, error)
+	ObtenerReporteGeneral(context.Context) (models.ReporteGeneral, error)
 	ObtenerRed(context.Context, string) ([]*models.Referido, error)
 	CrearPedido(context.Context, models.CheckoutRequest, models.Usuario) (models.PedidoConfirmado, error)
 	CalcularComisiones(context.Context, int64, int, float64) error

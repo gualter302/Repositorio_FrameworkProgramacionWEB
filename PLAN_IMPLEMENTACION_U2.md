@@ -39,6 +39,7 @@ funciones comprobadas en este repositorio. Una casilla se marca cuando sus prueb
 
 ### Reportes y operación
 
-- [ ] Calcular ventas, pedidos, ticket promedio y comisiones desde PostgreSQL.
-- [ ] Mostrar productos y referidos principales en el Dashboard.
+- [x] Calcular ventas, pedidos, ticket promedio y comisiones desde PostgreSQL.
+- [x] Mostrar productos y referidos principales en el Dashboard.
+- [x] Mostrar comisiones pendientes de pago.
 - [ ] Agregar paginación y búsqueda desde el servidor.

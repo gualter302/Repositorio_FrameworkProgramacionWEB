@@ -130,6 +130,28 @@ type Liquidacion struct {
 	Fecha      time.Time `json:"fecha"`
 }
 
+type ProductoReporte struct {
+	Nombre   string  `json:"nombre"`
+	Cantidad int     `json:"cantidad"`
+	Ventas   float64 `json:"ventas"`
+}
+
+type ReferidoReporte struct {
+	Nombre     string  `json:"nombre"`
+	Ventas     float64 `json:"ventas"`
+	Comisiones float64 `json:"comisiones"`
+}
+
+type ReporteGeneral struct {
+	TotalVentas          float64           `json:"totalVentas"`
+	TotalPedidos         int               `json:"totalPedidos"`
+	TicketPromedio       float64           `json:"ticketPromedio"`
+	TotalComisiones      float64           `json:"totalComisiones"`
+	PendientePagar       float64           `json:"pendientePagar"`
+	ProductosPrincipales []ProductoReporte `json:"productosPrincipales"`
+	ReferidosPrincipales []ReferidoReporte `json:"referidosPrincipales"`
+}
+
 // APIError mantiene la misma forma en todas las respuestas de error.
 // Message se publica como "error" porque el frontend ya lee esa propiedad.
 type APIError struct {
