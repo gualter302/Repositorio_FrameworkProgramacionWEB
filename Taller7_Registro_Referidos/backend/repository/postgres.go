@@ -19,6 +19,8 @@ var (
 	ErrCodigoReferido       = errors.New("código de referido no encontrado")
 	ErrPedidoNoEncontrado   = errors.New("pedido no encontrado")
 	ErrEstadoPedido         = errors.New("estado de pedido inválido")
+	ErrComisionNoLiquidable = errors.New("la comisión ya fue liquidada o no existe")
+	ErrLiquidacionVacia     = errors.New("no hay comisiones para liquidar")
 )
 
 // StockInsuficienteError permite explicar qué producto no puede completar la compra.
@@ -629,4 +631,93 @@ func (r *PostgresRepository) CancelarPedido(ctx context.Context, id int64) error
 		return err
 	}
 	return tx.Commit(ctx)
+}
+
+func (r *PostgresRepository) ObtenerComisionesUsuario(ctx context.Context, email string) ([]models.Comision, error) {
+	return r.consultarComisiones(ctx, `
+		JOIN usuarios u ON u.referido_id = c.referido_id
+		WHERE u.email = $1`, []any{email})
+}
+
+func (r *PostgresRepository) ObtenerTodasLasComisiones(ctx context.Context, estado string) ([]models.Comision, error) {
+	filtro := ""
+	args := []any{}
+	if estado != "" {
+		filtro = " WHERE c.estado = $1"
+		args = append(args, estado)
+	}
+	return r.consultarComisiones(ctx, filtro, args)
+}
+
+func (r *PostgresRepository) consultarComisiones(ctx context.Context, filtro string, args []any) ([]models.Comision, error) {
+	filas, err := r.pool.Query(ctx, `
+		SELECT c.id, c.pedido_id, p.numero, c.referido_id, r.nombre, c.nivel,
+		       c.porcentaje, c.monto, c.estado, c.fecha, c.pagada_en
+		FROM comisiones c
+		JOIN pedidos p ON p.id = c.pedido_id
+		JOIN referidos r ON r.id = c.referido_id`+filtro+` ORDER BY c.fecha DESC`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer filas.Close()
+	comisiones := make([]models.Comision, 0)
+	for filas.Next() {
+		var comision models.Comision
+		if err := filas.Scan(&comision.ID, &comision.PedidoID, &comision.NumeroPedido,
+			&comision.ReferidoID, &comision.Referido, &comision.Nivel, &comision.Porcentaje,
+			&comision.Monto, &comision.Estado, &comision.Fecha, &comision.PagadaEn); err != nil {
+			return nil, err
+		}
+		comisiones = append(comisiones, comision)
+	}
+	return comisiones, filas.Err()
+}
+
+func (r *PostgresRepository) LiquidarComisiones(ctx context.Context, ids []int64) (models.Liquidacion, error) {
+	if len(ids) == 0 {
+		return models.Liquidacion{}, ErrLiquidacionVacia
+	}
+	tx, err := r.pool.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.Serializable})
+	if err != nil {
+		return models.Liquidacion{}, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	var referidoID int
+	var monto float64
+	if err := tx.QueryRow(ctx, `
+		SELECT referido_id, SUM(monto) FROM comisiones
+		WHERE id = ANY($1) AND estado = 'pendiente'
+		GROUP BY referido_id`, ids).Scan(&referidoID, &monto); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.Liquidacion{}, ErrComisionNoLiquidable
+		}
+		return models.Liquidacion{}, err
+	}
+	var cantidad int
+	if err := tx.QueryRow(ctx, `SELECT COUNT(*) FROM comisiones WHERE id = ANY($1) AND estado = 'pendiente' AND referido_id = $2`, ids, referidoID).Scan(&cantidad); err != nil {
+		return models.Liquidacion{}, err
+	}
+	if cantidad != len(ids) {
+		return models.Liquidacion{}, ErrComisionNoLiquidable
+	}
+
+	var liquidacion models.Liquidacion
+	if err := tx.QueryRow(ctx, `INSERT INTO liquidaciones (referido_id, monto) VALUES ($1, $2) RETURNING id, fecha`, referidoID, monto).Scan(&liquidacion.ID, &liquidacion.Fecha); err != nil {
+		return models.Liquidacion{}, err
+	}
+	for _, id := range ids {
+		if _, err := tx.Exec(ctx, `INSERT INTO liquidacion_comisiones (liquidacion_id, comision_id) VALUES ($1, $2)`, liquidacion.ID, id); err != nil {
+			return models.Liquidacion{}, ErrComisionNoLiquidable
+		}
+	}
+	if _, err := tx.Exec(ctx, `UPDATE comisiones SET estado = 'pagada', pagada_en = NOW() WHERE id = ANY($1)`, ids); err != nil {
+		return models.Liquidacion{}, err
+	}
+	liquidacion.ReferidoID = referidoID
+	liquidacion.Monto = monto
+	if err := tx.Commit(ctx); err != nil {
+		return models.Liquidacion{}, err
+	}
+	return liquidacion, nil
 }

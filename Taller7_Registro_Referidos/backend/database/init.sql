@@ -69,7 +69,23 @@ CREATE TABLE IF NOT EXISTS comisiones (
     porcentaje  DOUBLE PRECISION NOT NULL,
     monto       DOUBLE PRECISION NOT NULL CHECK (monto >= 0),
     fecha       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    estado      TEXT NOT NULL DEFAULT 'pendiente',
+    pagada_en   TIMESTAMPTZ,
     UNIQUE (pedido_id, referido_id)
+);
+
+CREATE TABLE IF NOT EXISTS liquidaciones (
+    id          BIGSERIAL PRIMARY KEY,
+    referido_id INT NOT NULL REFERENCES referidos(id),
+    monto       DOUBLE PRECISION NOT NULL CHECK (monto > 0),
+    fecha       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (id, referido_id)
+);
+
+CREATE TABLE IF NOT EXISTS liquidacion_comisiones (
+    liquidacion_id BIGINT NOT NULL REFERENCES liquidaciones(id) ON DELETE CASCADE,
+    comision_id    BIGINT NOT NULL UNIQUE REFERENCES comisiones(id),
+    PRIMARY KEY (liquidacion_id, comision_id)
 );
 
 -- Tres niveles ascendentes desde el cliente de demostración permiten comprobar las comisiones.

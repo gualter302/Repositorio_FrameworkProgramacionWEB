@@ -12,6 +12,8 @@ import Registro from './components/Registro';
 import AdminProductos from './components/AdminProductos';
 import Pedidos from './components/Pedidos';
 import AdminPedidos from './components/AdminPedidos';
+import Comisiones from './components/Comisiones';
+import AdminComisiones from './components/AdminComisiones';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SidebarProvider } from './context/SidebarContext';
@@ -55,9 +57,11 @@ function App() {
                   <Route path="checkout" element={<Checkout />} />
                   <Route path="confirmacion" element={<Confirmacion />} />
                     <Route path="pedidos" element={<Pedidos />} />
+                    <Route path="comisiones" element={<Comisiones />} />
                   <Route element={<AdminRoute />}>
                     <Route path="admin/productos" element={<AdminProductos />} />
                     <Route path="admin/pedidos" element={<AdminPedidos />} />
+                    <Route path="admin/comisiones" element={<AdminComisiones />} />
                   </Route>
                 </Route>
               </Route>

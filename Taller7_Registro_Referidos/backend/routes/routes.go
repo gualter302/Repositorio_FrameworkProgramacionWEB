@@ -17,6 +17,7 @@ func SetupRoutes(app *fiber.App, api *controllers.API, secret string) {
 	protegida.Get("/red", api.GetRed)
 	protegida.Post("/checkout", api.Checkout)
 	protegida.Get("/pedidos", api.MisPedidos)
+	protegida.Get("/comisiones", api.MisComisiones)
 	admin := protegida.Group("/admin", seguridad.RequireRole("admin"))
 	admin.Get("/productos", api.AdminProductos)
 	admin.Post("/productos", api.CrearProducto)
@@ -25,4 +26,6 @@ func SetupRoutes(app *fiber.App, api *controllers.API, secret string) {
 	admin.Get("/pedidos", api.AdminPedidos)
 	admin.Patch("/pedidos/:id/estado", api.CambiarEstadoPedido)
 	admin.Post("/pedidos/:id/cancelar", api.CancelarPedido)
+	admin.Get("/comisiones", api.AdminComisiones)
+	admin.Post("/liquidaciones", api.LiquidarComisiones)
 }

@@ -109,6 +109,27 @@ type PedidoResumen struct {
 	UsuarioEmail string `json:"usuarioEmail"`
 }
 
+type Comision struct {
+	ID           int64      `json:"id"`
+	PedidoID     int64      `json:"pedidoId"`
+	NumeroPedido string     `json:"numeroPedido"`
+	ReferidoID   int        `json:"referidoId"`
+	Referido     string     `json:"referido"`
+	Nivel        int        `json:"nivel"`
+	Porcentaje   float64    `json:"porcentaje"`
+	Monto        float64    `json:"monto"`
+	Estado       string     `json:"estado"`
+	Fecha        time.Time  `json:"fecha"`
+	PagadaEn     *time.Time `json:"pagadaEn,omitempty"`
+}
+
+type Liquidacion struct {
+	ID         int64     `json:"id"`
+	ReferidoID int       `json:"referidoId"`
+	Monto      float64   `json:"monto"`
+	Fecha      time.Time `json:"fecha"`
+}
+
 // APIError mantiene la misma forma en todas las respuestas de error.
 // Message se publica como "error" porque el frontend ya lee esa propiedad.
 type APIError struct {

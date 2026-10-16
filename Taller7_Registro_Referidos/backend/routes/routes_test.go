@@ -87,6 +87,18 @@ func (d *datosFalsos) CancelarPedido(context.Context, int64) error {
 	return nil
 }
 
+func (d *datosFalsos) ObtenerComisionesUsuario(context.Context, string) ([]models.Comision, error) {
+	return []models.Comision{}, nil
+}
+
+func (d *datosFalsos) ObtenerTodasLasComisiones(context.Context, string) ([]models.Comision, error) {
+	return []models.Comision{}, nil
+}
+
+func (d *datosFalsos) LiquidarComisiones(context.Context, []int64) (models.Liquidacion, error) {
+	return models.Liquidacion{ID: 1, Monto: 10}, nil
+}
+
 func (d *datosFalsos) ObtenerRed(context.Context, string) ([]*models.Referido, error) {
 	return []*models.Referido{{ID: 1, Nombre: "Administrador", Hijos: []*models.Referido{}}}, nil
 }

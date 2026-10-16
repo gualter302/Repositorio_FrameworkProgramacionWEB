@@ -20,13 +20,14 @@ const menuItems: MenuItem[] = [
   { to: "/", label: "Dashboard", Icon: DashboardIcon },
   { to: "/catalogo", label: "Catálogo", Icon: CatalogoIcon },
   { to: "/pedidos", label: "Mis pedidos", Icon: CatalogoIcon },
+  { to: "/comisiones", label: "Mis comisiones", Icon: CatalogoIcon },
   { to: "/mi-red", label: "Mi Red", Icon: RedIcon },
 ];
 
 const Sidebar = ({ isCollapsed, onNavigate }: SidebarProps) => {
   const { role } = useAuth();
   const items = role === "admin"
-    ? [...menuItems, { to: "/admin/productos", label: "Productos", Icon: CatalogoIcon }, { to: "/admin/pedidos", label: "Pedidos", Icon: CatalogoIcon }]
+    ? [...menuItems, { to: "/admin/productos", label: "Productos", Icon: CatalogoIcon }, { to: "/admin/pedidos", label: "Pedidos", Icon: CatalogoIcon }, { to: "/admin/comisiones", label: "Comisiones", Icon: CatalogoIcon }]
     : menuItems;
   return (
     <aside

@@ -21,9 +21,9 @@ funciones comprobadas en este repositorio. Una casilla se marca cuando sus prueb
 
 ### Administración de productos
 
-- [ ] Crear, editar y desactivar productos con permisos de administrador.
-- [ ] Mostrar productos activos en el catálogo e incluir inactivos en el panel admin.
-- [ ] Renovar `productos:all` después de cada escritura.
+- [x] Crear, editar y desactivar productos con permisos de administrador.
+- [x] Mostrar productos activos en el catálogo e incluir inactivos en el panel admin.
+- [x] Renovar `productos:all` después de cada escritura.
 
 ### Consulta y gestión de pedidos
 
@@ -33,9 +33,9 @@ funciones comprobadas en este repositorio. Una casilla se marca cuando sus prueb
 
 ### Comisiones y liquidaciones
 
-- [ ] Convertir cada comisión en un movimiento auditable del pedido.
-- [ ] Mostrar comisiones propias con sus estados.
-- [ ] Crear liquidaciones sin permitir pagos duplicados.
+- [x] Convertir cada comisión en un movimiento auditable del pedido.
+- [x] Mostrar comisiones propias con sus estados.
+- [x] Crear liquidaciones sin permitir pagos duplicados.
 
 ### Reportes y operación
 

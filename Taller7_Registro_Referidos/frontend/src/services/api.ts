@@ -66,6 +66,20 @@ export interface PedidoResumen extends PedidoConfirmado {
   usuarioEmail: string;
 }
 
+export interface Comision {
+  id: number;
+  pedidoId: number;
+  numeroPedido: string;
+  referidoId: number;
+  referido: string;
+  nivel: number;
+  porcentaje: number;
+  monto: number;
+  estado: 'pendiente' | 'pagada';
+  fecha: string;
+  pagadaEn?: string;
+}
+
 // Petición genérica: hace el fetch, convierte a JSON y lanza un Error si algo sale mal.
 const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
   let response: Response;
@@ -154,3 +168,15 @@ export const actualizarEstadoPedido = (id: number, estado: string) =>
 
 export const cancelarPedido = (id: number) =>
   request<void>(`/admin/pedidos/${id}/cancelar`, { method: 'POST' });
+
+export const getMisComisiones = () => request<Comision[]>('/comisiones');
+
+export const getComisionesAdmin = (estado = '') =>
+  request<Comision[]>(`/admin/comisiones?estado=${encodeURIComponent(estado)}`);
+
+export const liquidarComisiones = (comisionIds: number[]) =>
+  request<{ id: number; monto: number; fecha: string }>('/admin/liquidaciones', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ comisionIds }),
+  });

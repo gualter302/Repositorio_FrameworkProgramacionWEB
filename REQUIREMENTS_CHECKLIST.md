@@ -4,7 +4,7 @@
 
 - **Hito actual:** Taller 7, registro y red de referidos terminado y verificado.
 - **Última tarea completada:** CRUD administrativo de productos con permisos y desactivación lógica.
-- **Siguiente tarea pendiente:** libro de comisiones y liquidaciones.
+- **Siguiente tarea pendiente:** reportes y operación administrativa.
 - **Base recomendada:** `Taller7_Registro_Referidos/`.
 - **Fuentes disponibles:** guía práctica, planificación, análisis funcional y README de cada taller.
 - **Fuentes faltantes:** `Planificacion_Unidad1_Tema5.md` y `Silabo_Framework_Programacion_Web.md`.
@@ -123,6 +123,12 @@
 - [x] Gestionar estados y devolver stock al cancelar dentro de una transacción.
 - [x] Revertir las comisiones asociadas cuando se cancela un pedido.
 
+## Comisiones y liquidaciones
+
+- [x] Convertir cada comisión en un movimiento auditable del pedido.
+- [x] Mostrar comisiones propias con sus estados.
+- [x] Crear liquidaciones sin permitir pagos duplicados.
+
 ## Verificación y entrega
 
 - [x] Ejecutar `go test ./...` en el backend de la Fase 1.
@@ -135,5 +141,6 @@
 - [x] Verificar que el checkout use el usuario del JWT aunque el cuerpo envíe otro correo.
 - [x] Probar CRUD de productos, rechazo del cliente y desactivación lógica.
 - [x] Probar historial del cliente, listado administrativo y cancelación con devolución de stock.
+- [x] Probar consulta de comisiones, liquidación y rechazo de duplicados.
 - [ ] Verificar navegación por teclado, textos alternativos y contraste.
 - [ ] Actualizar este checklist inmediatamente después de cada prueba exitosa.
