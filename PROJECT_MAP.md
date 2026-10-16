@@ -17,6 +17,8 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - `README.md`: índice de talleres y forma general de ejecutar el proyecto.
 - `PROJECT_MAP.md`: ubicación rápida de carpetas y archivos importantes.
 - `REQUIREMENTS_CHECKLIST.md`: avance confirmado y siguientes tareas.
+- `ANALISIS_FUNCIONAL_U2.md`: funciones de negocio que todavía faltan.
+- `PLAN_IMPLEMENTACION_U2.md`: orden de los próximos talleres de back-office.
 - `AGENTS.md`: instrucciones que Codex carga automáticamente para este repositorio.
 - `CODEX_SETUP.md`: configuración opcional de Playwright y memoria para Codex.
 - `CODEX_CONFIG_EXAMPLE.toml`: ejemplo inactivo para la configuración personal de Codex.
@@ -74,11 +76,23 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - `Unidad2_Fase4_Checkout_Concurrencia/frontend/src/components/Checkout.tsx`: compra conectada a la API.
 - `Unidad2_Fase4_Checkout_Concurrencia/README.md`: ejecución y prueba segura de reversión.
 
+## Taller 7
+
+- `Taller7_Registro_Referidos/`: Fase 4 más registro, JWT y red propia.
+- `Taller7_Registro_Referidos/backend/database/004_registro_referidos.sql`: migración acumulativa.
+- `Taller7_Registro_Referidos/backend/middleware/auth.go`: validación de sesiones.
+- `Taller7_Registro_Referidos/backend/controllers/prodController.go`: catálogo público y CRUD administrativo.
+- `Taller7_Registro_Referidos/backend/database/005_productos_activos.sql`: migración de desactivación lógica.
+- `Taller7_Registro_Referidos/frontend/src/components/Registro.tsx`: alta con código de invitación.
+- `Taller7_Registro_Referidos/frontend/src/components/AdminProductos.tsx`: gestión de productos para administradores.
+- `Taller7_Registro_Referidos/frontend/src/components/Pedidos.tsx`: historial de pedidos del cliente.
+- `Taller7_Registro_Referidos/frontend/src/components/AdminPedidos.tsx`: gestión administrativa de pedidos.
+
 ## Comandos puntuales
 
-- Backend: entrar en `Taller5_Fase1_Arquitectura_API_Robusta/backend` y ejecutar `go run .`.
+- Backend actual: entrar en `Taller7_Registro_Referidos/backend` y ejecutar `docker compose up --build -d`.
 - Pruebas backend: en esa misma carpeta ejecutar `go test ./...`.
-- Frontend: entrar en `Taller5_Fase1_Arquitectura_API_Robusta/frontend` y ejecutar `npm run dev`.
+- Frontend actual: entrar en `Taller7_Registro_Referidos/frontend` y ejecutar `npm run dev`.
 - Revisión frontend: ejecutar `npm run lint` y `npm run build` solo cuando cambie el frontend.
 
 ## Documentación usada para los requisitos
