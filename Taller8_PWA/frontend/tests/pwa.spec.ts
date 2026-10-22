@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test';
 
+test('muestra las cuentas de prueba en el inicio de sesión', async ({ page }) => {
+  await page.goto('/login');
+  await expect(page.getByText('Cuentas de prueba')).toBeVisible();
+  await expect(page.getByText('admin@upse.edu.ec', { exact: false })).toBeVisible();
+  await expect(page.getByText('cliente@upse.edu.ec', { exact: false })).toBeVisible();
+  await expect(page.getByText('la definida en Render')).toBeVisible();
+});
+
 test('instala service worker, conserva carrito y catálogo offline sin cachear datos privados', async ({ page, context }) => {
   await page.route('**/api/**', async route => {
     const path = new URL(route.request().url()).pathname;
@@ -51,6 +59,24 @@ test('manifest e iconos disponibles y primera visita sin catálogo muestra un er
   await page.route('**/api/**', route => route.abort());
   await page.goto('/catalogo');
   await expect(page.getByText('No se pudo conectar con el servidor.', { exact: false })).toBeVisible();
+});
+
+test('muestra la copia del catálogo sin esperar a que una conexión inestable termine', async ({ page }) => {
+  await page.goto('/login');
+  await page.evaluate(() => {
+    const date = Date.now();
+    localStorage.setItem('multicatalogo_catalogo', JSON.stringify({
+      date,
+      products: [{ id: 9, nombre: 'Producto guardado', precio: 15, stock: 4, img: '/placeholder.svg' }],
+    }));
+    localStorage.setItem('multicatalogo_catalogo_fecha', String(date));
+  });
+  await page.route('**/api/productos', () => new Promise(() => {}));
+
+  await page.goto('/catalogo');
+
+  await expect(page.getByText('Producto guardado')).toBeVisible({ timeout: 1000 });
+  await expect(page.getByText('Copia disponible 24 h')).toBeVisible();
 });
 
 test('cambiar cuenta no mezcla carritos y una sesión vencida permite consultar el catálogo público', async ({ page }) => {

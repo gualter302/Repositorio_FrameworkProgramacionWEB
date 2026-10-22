@@ -2,7 +2,8 @@
 
 Base acumulativa del Taller 7: registro, catálogo, pedidos, comisiones y administración.
 Agrega instalación, interfaz sin conexión, catálogo público guardado durante 24 horas,
-carrito local por usuario y checkout con reintentos sin duplicar pedidos.
+carrito local por usuario y checkout con reintentos sin duplicar pedidos. El catálogo incluye
+20 productos propios con ilustraciones locales que también forman parte de la instalación.
 
 ## Levantar el sistema
 
@@ -33,8 +34,17 @@ es independiente de los talleres anteriores.
 
 Las cuentas de demostración son:
 
-- Administrador: `admin@upse.edu.ec` / `123456`
+- Administrador local: `admin@upse.edu.ec` / `123456`
+- Administrador publicado: `admin@upse.edu.ec` / clave definida en `ADMIN_PASSWORD`
 - Cliente: `cliente@upse.edu.ec` / `123456`
+
+## Datos de demostración
+
+La migración `009_datos_demostracion.sql` prepara cinco compras del cliente de prueba en
+distintos estados, sus diez detalles, las comisiones de tres niveles y tres liquidaciones.
+Esto permite revisar desde el primer inicio Mis pedidos, administración de pedidos,
+comisiones, red y reportes sin registrar compras manualmente. El seeder guarda su propia
+versión y no duplica la información si vuelve a ejecutarse.
 
 Para abrir el sistema desde un teléfono conectado a la misma red Wi-Fi, ejecutar `ipconfig`,
 buscar la dirección IPv4 del equipo y visitar `http://DIRECCION_IP:4178/catalogo` desde el
@@ -64,6 +74,8 @@ Para desarrollo se puede usar `npm run dev`; el service worker debe comprobarse 
 
 Visitar el catálogo una vez con conexión. Después se puede abrir la interfaz, consultar
 esa copia pública y preparar el carrito. La última fecha de consulta aparece en el catálogo.
+Al regresar al catálogo, la copia guardada se muestra de inmediato mientras la aplicación
+intenta actualizarla en segundo plano; una conexión inestable no bloquea la pantalla.
 La copia local se limita a 500 productos y un millón de caracteres.
 Las imágenes consultadas se guardan hasta siete días (máximo 40) y hay imagen de respaldo.
 Sin una visita previa o con catálogo de más de 24 horas se muestra un error de conexión.
@@ -117,8 +129,8 @@ Antes de comenzar, fusionar esta rama en `main` y subirla a GitHub. Después:
    porque compila el frontend, el backend y crea la base.
 6. Abrir el servicio `multicatalogo-pwa-gualter302`. Primero comprobar `/api/health` y después
    abrir `/login`. Las tablas, migraciones y datos iniciales se crean automáticamente.
-7. Iniciar sesión con `admin@upse.edu.ec` y la contraseña elegida en el paso 4. La tarjeta con
-   `123456` solo aparece en compilaciones locales y queda oculta en Render.
+7. Iniciar sesión con `admin@upse.edu.ec` y la contraseña elegida en el paso 4. El formulario
+   también muestra la cuenta cliente de prueba `cliente@upse.edu.ec` / `123456`.
 8. Probar catálogo, registro, carrito, pedido y administración. En un teléfono abrir la dirección
    HTTPS de Render, visitar el catálogo una vez e instalar la PWA desde el navegador.
 
