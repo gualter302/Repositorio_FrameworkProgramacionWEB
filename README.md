@@ -14,6 +14,9 @@
 
 Cada carpeta tiene su propio `README.md` con las instrucciones para ejecutarla.
 
+El taller acumulativo más reciente es `Taller8_PWA/`: instalación, catálogo sin conexión,
+carrito por usuario y compras con reintentos seguros. Su README incluye pruebas y despliegue HTTPS.
+
 ## Taller 6 - Ahorro de tokens
 
 Este taller agrega archivos de orientación en la raíz para encontrar rápidamente el código,

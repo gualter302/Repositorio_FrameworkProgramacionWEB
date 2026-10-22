@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: multicatalogo
+      POSTGRES_DB: multicatalogo
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD}
+    volumes:
+      - production_db:/var/lib/postgresql/data
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./backend/database/004_registro_referidos.sql:/docker-entrypoint-initdb.d/004_registro_referidos.sql:ro
+      - ./backend/database/005_productos_activos.sql:/docker-entrypoint-initdb.d/005_productos_activos.sql:ro
+      - ./backend/database/006_comisiones_liquidaciones.sql:/docker-entrypoint-initdb.d/006_comisiones_liquidaciones.sql:ro
+      - ./backend/database/007_pwa.sql:/docker-entrypoint-initdb.d/007_pwa.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U multicatalogo"]
+      interval: 5s
+      retries: 10
+  redis:
+    image: redis:alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgres://multicatalogo:${DB_PASSWORD}@db:5432/multicatalogo?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET}
+      ALLOWED_ORIGINS: https://${DOMAIN:?Define DOMAIN}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  web:
+    build: ./frontend
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports: ["80:80", "443:443", "443:443/udp"]
+    volumes: [caddy_data:/data, caddy_config:/config]
+    depends_on: [backend]
+volumes:
+  production_db:
+  caddy_data:
+  caddy_config:

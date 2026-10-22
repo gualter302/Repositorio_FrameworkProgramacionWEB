@@ -28,8 +28,6 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - `Taller1y2_Entorno_y_API_Pokemon/`: aplicación React que consume PokeAPI.
 - `Taller1y2_Entorno_y_API_Pokemon/src/App.tsx`: rutas principales.
 - `Taller1y2_Entorno_y_API_Pokemon/src/pages/Pokemons.tsx`: listado y filtros.
-- `Taller1y2_Entorno_y_API_Pokemon/src/components/`: layout, menú y tarjetas.
-- `Taller1y2_Entorno_y_API_Pokemon/package.json`: comandos y dependencias.
 
 ## Taller 3
 
@@ -38,7 +36,6 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - `Taller3_Sidebar/src/components/Sidebar.tsx`: menú lateral.
 - `Taller3_Sidebar/src/components/Navbar.tsx`: barra superior y botón del menú.
 - `Taller3_Sidebar/src/context/`: autenticación, carrito y estado del menú.
-- `Taller3_Sidebar/src/icons/`: iconos reutilizables.
 
 ## Taller 4
 
@@ -54,17 +51,7 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 ## Taller 5 y backend actual
 
 - `Taller5_Fase1_Arquitectura_API_Robusta/`: base recomendada para continuar el proyecto.
-- `Taller5_Fase1_Arquitectura_API_Robusta/frontend/`: copia funcional del frontend del Taller 4.
-- `Taller5_Fase1_Arquitectura_API_Robusta/frontend/src/services/api.ts`: conexión con Go.
-- `Taller5_Fase1_Arquitectura_API_Robusta/backend/main.go`: servidor en el puerto 3000.
-- `Taller5_Fase1_Arquitectura_API_Robusta/backend/routes/routes.go`: health, login y productos.
-- `Taller5_Fase1_Arquitectura_API_Robusta/backend/controllers/authController.go`: validación del login.
-- `Taller5_Fase1_Arquitectura_API_Robusta/backend/controllers/prodController.go`: lista y detalle.
-- `Taller5_Fase1_Arquitectura_API_Robusta/backend/controllers/healthController.go`: estado del servidor.
-- `Taller5_Fase1_Arquitectura_API_Robusta/backend/controllers/errors.go`: formato común de errores.
-- `Taller5_Fase1_Arquitectura_API_Robusta/backend/models/models.go`: modelos y `APIError`.
-- `Taller5_Fase1_Arquitectura_API_Robusta/backend/repository/repository.go`: datos en memoria.
-- `Taller5_Fase1_Arquitectura_API_Robusta/backend/routes/routes_test.go`: pruebas de rutas.
+- `Taller5_Fase1_Arquitectura_API_Robusta/backend/`: rutas, controladores, modelos y pruebas; datos en memoria.
 
 ## Unidad 2 Fases 2, 3 y 4
 
@@ -94,6 +81,11 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - `Taller7_Registro_Referidos/backend/database/006_comisiones_liquidaciones.sql`: estados y liquidaciones de comisiones.
 
 ## Comandos puntuales
+
+- `Taller8_PWA/`: base acumulativa del Taller 7 con instalación, catálogo offline y carrito persistente.
+- `Taller8_PWA/frontend/vite.config.ts`: manifest y service worker; `src/components/PwaControls.tsx`: instalación y actualización.
+- `Taller8_PWA/backend/database/007_pwa.sql`: claves de compra para evitar duplicados.
+- `Taller8_PWA/compose.production.yml`: despliegue HTTPS; ver README del taller para pruebas y límites.
 
 - Backend actual: entrar en `Taller7_Registro_Referidos/backend` y ejecutar `docker compose up --build -d`.
 - Pruebas backend: en esa misma carpeta ejecutar `go test ./...`.
