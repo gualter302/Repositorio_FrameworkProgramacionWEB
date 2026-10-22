@@ -1,5 +1,13 @@
 import { test, expect } from '@playwright/test';
 
+test('muestra las cuentas de prueba en el inicio de sesión', async ({ page }) => {
+  await page.goto('/login');
+  await expect(page.getByText('Cuentas de prueba')).toBeVisible();
+  await expect(page.getByText('admin@upse.edu.ec', { exact: false })).toBeVisible();
+  await expect(page.getByText('cliente@upse.edu.ec', { exact: false })).toBeVisible();
+  await expect(page.getByText('la definida en Render')).toBeVisible();
+});
+
 test('instala service worker, conserva carrito y catálogo offline sin cachear datos privados', async ({ page, context }) => {
   await page.route('**/api/**', async route => {
     const path = new URL(route.request().url()).pathname;

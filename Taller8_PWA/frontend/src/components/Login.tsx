@@ -11,7 +11,6 @@ const Login = () => {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false); // true mientras se espera la respuesta
-  const mostrarCuentaDemo = import.meta.env.VITE_SHOW_DEMO_CREDENTIALS !== 'false';
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -89,11 +88,21 @@ const Login = () => {
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
-        {mostrarCuentaDemo && <div className="mt-6 rounded-2xl border border-cyan-200/15 bg-cyan-300/[0.05] p-4 text-sm text-slate-300">
-          <p className="mb-2 font-semibold text-cyan-200">Cuenta de demostración</p>
-          <p className="break-words"><span className="text-slate-500">Correo:</span> admin@upse.edu.ec</p>
-          <p><span className="text-slate-500">Contraseña:</span> 123456</p>
-        </div>}
+        <div className="mt-6 rounded-2xl border border-cyan-200/15 bg-cyan-300/[0.05] p-4 text-sm text-slate-300">
+          <p className="mb-3 font-semibold text-cyan-200">Cuentas de prueba</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-white/10 bg-slate-950/35 p-3">
+              <p className="mb-2 font-semibold text-white">Administrador</p>
+              <p className="break-all"><span className="text-slate-500">Correo:</span> admin@upse.edu.ec</p>
+              <p><span className="text-slate-500">Contraseña:</span> la definida en Render</p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-slate-950/35 p-3">
+              <p className="mb-2 font-semibold text-white">Cliente</p>
+              <p className="break-all"><span className="text-slate-500">Correo:</span> cliente@upse.edu.ec</p>
+              <p><span className="text-slate-500">Contraseña:</span> 123456</p>
+            </div>
+          </div>
+        </div>
     </AuthShell>
   );
 };

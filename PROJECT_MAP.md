@@ -86,6 +86,7 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - `Taller8_PWA/frontend/vite.config.ts`: manifest y service worker; `src/components/PwaControls.tsx`: instalación y actualización; `src/components/Ui.tsx`: piezas visuales compartidas.
 - `Taller8_PWA/backend/database/007_pwa.sql`: claves de compra para evitar duplicados.
 - `Taller8_PWA/backend/database/008_catalogo_renovado.sql`: catálogo propio de 20 productos; `frontend/public/products/`: sus ilustraciones locales.
+- `Taller8_PWA/backend/database/009_datos_demostracion.sql`: cuentas y operaciones de prueba para recorrer todas las pantallas.
 - `Taller8_PWA/render.yaml` y `Dockerfile.render`: publicación completa en Render desde la subcarpeta.
 - `Taller8_PWA/compose.production.yml`: alternativa de despliegue HTTPS en un servidor propio.
 

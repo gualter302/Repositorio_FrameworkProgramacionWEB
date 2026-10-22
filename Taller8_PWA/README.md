@@ -34,8 +34,17 @@ es independiente de los talleres anteriores.
 
 Las cuentas de demostración son:
 
-- Administrador: `admin@upse.edu.ec` / `123456`
+- Administrador local: `admin@upse.edu.ec` / `123456`
+- Administrador publicado: `admin@upse.edu.ec` / clave definida en `ADMIN_PASSWORD`
 - Cliente: `cliente@upse.edu.ec` / `123456`
+
+## Datos de demostración
+
+La migración `009_datos_demostracion.sql` prepara cinco compras del cliente de prueba en
+distintos estados, sus diez detalles, las comisiones de tres niveles y tres liquidaciones.
+Esto permite revisar desde el primer inicio Mis pedidos, administración de pedidos,
+comisiones, red y reportes sin registrar compras manualmente. El seeder guarda su propia
+versión y no duplica la información si vuelve a ejecutarse.
 
 Para abrir el sistema desde un teléfono conectado a la misma red Wi-Fi, ejecutar `ipconfig`,
 buscar la dirección IPv4 del equipo y visitar `http://DIRECCION_IP:4178/catalogo` desde el
@@ -120,8 +129,8 @@ Antes de comenzar, fusionar esta rama en `main` y subirla a GitHub. Después:
    porque compila el frontend, el backend y crea la base.
 6. Abrir el servicio `multicatalogo-pwa-gualter302`. Primero comprobar `/api/health` y después
    abrir `/login`. Las tablas, migraciones y datos iniciales se crean automáticamente.
-7. Iniciar sesión con `admin@upse.edu.ec` y la contraseña elegida en el paso 4. La tarjeta con
-   `123456` solo aparece en compilaciones locales y queda oculta en Render.
+7. Iniciar sesión con `admin@upse.edu.ec` y la contraseña elegida en el paso 4. El formulario
+   también muestra la cuenta cliente de prueba `cliente@upse.edu.ec` / `123456`.
 8. Probar catálogo, registro, carrito, pedido y administración. En un teléfono abrir la dirección
    HTTPS de Render, visitar el catálogo una vez e instalar la PWA desde el navegador.
 
