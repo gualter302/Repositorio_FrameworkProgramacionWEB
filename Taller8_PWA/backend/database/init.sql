@@ -101,7 +101,7 @@ ON CONFLICT (id) DO NOTHING;
 SELECT setval('referidos_id_seq', (SELECT MAX(id) FROM referidos));
 
 INSERT INTO usuarios (nombre, email, password, rol, activo, referido_id) VALUES
-    ('Administrador', 'admin@upse.edu.ec', crypt('123456', gen_salt('bf')), 'admin', true, 1),
+    ('Administrador', 'admin@upse.edu.ec', crypt('123456123456', gen_salt('bf')), 'admin', true, 1),
     ('Cliente Demo', 'cliente@upse.edu.ec', crypt('123456', gen_salt('bf')), 'cliente', true, 6)
 ON CONFLICT (email) DO NOTHING;
 

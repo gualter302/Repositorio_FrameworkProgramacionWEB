@@ -5,7 +5,7 @@ test('muestra las cuentas de prueba en el inicio de sesión', async ({ page }) =
   await expect(page.getByText('Cuentas de prueba')).toBeVisible();
   await expect(page.getByText('admin@upse.edu.ec', { exact: false })).toBeVisible();
   await expect(page.getByText('cliente@upse.edu.ec', { exact: false })).toBeVisible();
-  await expect(page.getByText('la definida en Render')).toBeVisible();
+  await expect(page.getByText('123456123456')).toBeVisible();
 });
 
 test('instala service worker, conserva carrito y catálogo offline sin cachear datos privados', async ({ page, context }) => {
@@ -56,6 +56,8 @@ test('manifest e iconos disponibles y primera visita sin catálogo muestra un er
   const data = await manifest.json();
   expect(data.display).toBe('standalone');
   for (const icon of data.icons) expect((await page.request.get(icon.src)).ok()).toBe(true);
+  const fotos = ['auriculares-orbit', 'teclado-nova', 'mouse-pulse', 'parlante-echo', 'bateria-volt', 'lampara-aura', 'botella-atlas', 'mochila-urban', 'organizador-zen', 'difusor-bruma', 'banda-active', 'mat-yoga', 'kit-lumen', 'protector-nube', 'reloj-vector', 'lentes-prisma', 'libreta-terra', 'taza-andina', 'hub-nexus', 'soporte-flex'];
+  for (const foto of fotos) expect((await page.request.get(`/products/images/${foto}.webp`)).ok()).toBe(true);
   await page.route('**/api/**', route => route.abort());
   await page.goto('/catalogo');
   await expect(page.getByText('No se pudo conectar con el servidor.', { exact: false })).toBeVisible();

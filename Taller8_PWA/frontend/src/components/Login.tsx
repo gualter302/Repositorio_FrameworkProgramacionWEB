@@ -94,7 +94,7 @@ const Login = () => {
             <div className="rounded-xl border border-white/10 bg-slate-950/35 p-3">
               <p className="mb-2 font-semibold text-white">Administrador</p>
               <p className="break-all"><span className="text-slate-500">Correo:</span> admin@upse.edu.ec</p>
-              <p><span className="text-slate-500">Contraseña:</span> la definida en Render</p>
+              <p><span className="text-slate-500">Contraseña:</span> 123456123456</p>
             </div>
             <div className="rounded-xl border border-white/10 bg-slate-950/35 p-3">
               <p className="mb-2 font-semibold text-white">Cliente</p>
