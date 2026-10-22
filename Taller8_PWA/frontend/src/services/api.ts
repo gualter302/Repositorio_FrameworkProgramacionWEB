@@ -94,6 +94,26 @@ export interface ReporteGeneral {
   referidosPrincipales: { nombre: string; ventas: number; comisiones: number }[];
 }
 
+interface CatalogoGuardado {
+  products: Producto[];
+  date: number;
+}
+
+const CATALOGO_KEY = 'multicatalogo_catalogo';
+const CATALOGO_FECHA_KEY = 'multicatalogo_catalogo_fecha';
+const DURACION_CATALOGO = 86400000;
+
+export const getProductosGuardados = (): CatalogoGuardado | null => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CATALOGO_KEY) ?? 'null');
+    if (!Array.isArray(saved?.products) || typeof saved.date !== 'number') return null;
+    if (Date.now() - saved.date >= DURACION_CATALOGO) return null;
+    return { products: saved.products, date: saved.date };
+  } catch {
+    return null;
+  }
+};
+
 // Petición genérica: hace el fetch, convierte a JSON y lanza un Error si algo sale mal.
 const request = async <T>(path: string, options?: RequestInit): Promise<T> => {
   let response: Response;
@@ -140,19 +160,16 @@ export const getProductos = async (freshOnly = false): Promise<Producto[]> => {
     const snapshot = JSON.stringify({ products: products.slice(0, 500), date: Date.now() });
     try {
       if (snapshot.length <= 1000000) {
-        localStorage.setItem('multicatalogo_catalogo', snapshot);
-        localStorage.setItem('multicatalogo_catalogo_fecha', String(Date.now()));
+        localStorage.setItem(CATALOGO_KEY, snapshot);
+        localStorage.setItem(CATALOGO_FECHA_KEY, String(Date.now()));
       }
     } catch { /* El catálogo en línea funciona incluso si el almacenamiento está lleno. */ }
     window.dispatchEvent(new Event('catalogue-updated'));
     return products;
   } catch (error) {
     if (freshOnly) throw error;
-    try {
-      const saved = JSON.parse(localStorage.getItem('multicatalogo_catalogo') ?? 'null');
-      if (Array.isArray(saved?.products) && Date.now() - saved.date < 86400000)
-        return saved.products;
-    } catch { /* Sin una copia válida mostramos el error de conexión. */ }
+    const saved = getProductosGuardados();
+    if (saved) return saved.products;
     throw error;
   }
 };

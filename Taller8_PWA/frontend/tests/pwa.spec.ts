@@ -53,6 +53,24 @@ test('manifest e iconos disponibles y primera visita sin catálogo muestra un er
   await expect(page.getByText('No se pudo conectar con el servidor.', { exact: false })).toBeVisible();
 });
 
+test('muestra la copia del catálogo sin esperar a que una conexión inestable termine', async ({ page }) => {
+  await page.goto('/login');
+  await page.evaluate(() => {
+    const date = Date.now();
+    localStorage.setItem('multicatalogo_catalogo', JSON.stringify({
+      date,
+      products: [{ id: 9, nombre: 'Producto guardado', precio: 15, stock: 4, img: '/placeholder.svg' }],
+    }));
+    localStorage.setItem('multicatalogo_catalogo_fecha', String(date));
+  });
+  await page.route('**/api/productos', () => new Promise(() => {}));
+
+  await page.goto('/catalogo');
+
+  await expect(page.getByText('Producto guardado')).toBeVisible({ timeout: 1000 });
+  await expect(page.getByText('Copia disponible 24 h')).toBeVisible();
+});
+
 test('cambiar cuenta no mezcla carritos y una sesión vencida permite consultar el catálogo público', async ({ page }) => {
   await page.goto('/login');
   await page.evaluate(() => {

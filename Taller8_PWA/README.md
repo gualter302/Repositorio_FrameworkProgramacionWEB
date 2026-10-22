@@ -64,6 +64,8 @@ Para desarrollo se puede usar `npm run dev`; el service worker debe comprobarse 
 
 Visitar el catálogo una vez con conexión. Después se puede abrir la interfaz, consultar
 esa copia pública y preparar el carrito. La última fecha de consulta aparece en el catálogo.
+Al regresar al catálogo, la copia guardada se muestra de inmediato mientras la aplicación
+intenta actualizarla en segundo plano; una conexión inestable no bloquea la pantalla.
 La copia local se limita a 500 productos y un millón de caracteres.
 Las imágenes consultadas se guardan hasta siete días (máximo 40) y hay imagen de respaldo.
 Sin una visita previa o con catálogo de más de 24 horas se muestra un error de conexión.

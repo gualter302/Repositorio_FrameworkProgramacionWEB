@@ -2,9 +2,9 @@
 
 ## Estado general
 
-- **Hito actual:** Taller 8 PWA implementado, probado y preparado para publicarse en Render.
-- **Última tarea completada:** imagen de producción, migraciones automáticas y Blueprint de Render comprobados localmente.
-- **Siguiente tarea pendiente:** fusionar el PR, crear el Blueprint en Render y probar la instalación HTTPS en Android/iOS.
+- **Hito actual:** Taller 8 PWA publicado en Render y en validación desde dispositivos móviles.
+- **Última tarea completada:** carga inmediata del catálogo guardado ante una conexión ausente o inestable.
+- **Siguiente tarea pendiente:** desplegar la corrección y confirmar la reapertura sin conexión en Android/iOS.
 - **Base recomendada:** `Taller8_PWA/`.
 - **Fuentes disponibles:** guía práctica, planificación, análisis funcional y README de cada taller.
 - **Fuentes faltantes:** `Planificacion_Unidad1_Tema5.md` y `Silabo_Framework_Programacion_Web.md`.

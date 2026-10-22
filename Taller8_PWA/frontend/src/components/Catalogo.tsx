@@ -4,30 +4,38 @@ import { Link } from 'react-router-dom';
 import { Box, LogIn, PackageSearch, ShoppingCart } from 'lucide-react';
 import { useCart, type Producto } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { getProductos } from '../services/api';
+import { getProductos, getProductosGuardados } from '../services/api';
 import { EmptyState, PageHeader } from './Ui';
 
 const Catalogo = () => {
   const { addToCart } = useCart(); // <-- Usamos la función del contexto
   const { isAuthenticated } = useAuth();
+  const [copiaInicial] = useState(getProductosGuardados);
 
   // Los productos ya no están quemados en el código: vienen del backend (GET /api/productos)
-  const [productos, setProductos] = useState<Producto[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [productos, setProductos] = useState<Producto[]>(copiaInicial?.products ?? []);
+  const [loading, setLoading] = useState<boolean>(!copiaInicial);
   const [error, setError] = useState<string>('');
+  const [fechaCopia, setFechaCopia] = useState<number | null>(copiaInicial?.date ?? null);
 
-  // useEffect con [] se ejecuta UNA vez, cuando el componente aparece en pantalla
+  // Mostramos primero la copia local y luego intentamos actualizarla sin bloquear la pantalla.
   useEffect(() => {
-    getProductos()
-      .then(setProductos)
-      .catch((err: Error) => setError(err.message))
+    getProductos(true)
+      .then((items) => {
+        setProductos(items);
+        setFechaCopia(getProductosGuardados()?.date ?? null);
+        setError('');
+      })
+      .catch((err: Error) => {
+        if (!copiaInicial) setError(err.message);
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [copiaInicial]);
 
   return (
     <div className="page page-stack">
       <PageHeader kicker="Colección" title="Catálogo de productos" description="Explora la selección disponible. Los precios y existencias se verifican nuevamente antes de confirmar tu compra." />
-      {!loading && productos.length > 0 && <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500"><span className="status-pill">Copia disponible 24 h</span><span>Última consulta: {new Date(Number(localStorage.getItem('multicatalogo_catalogo_fecha') ?? 0)).toLocaleString('es-EC')}</span></div>}
+      {!loading && productos.length > 0 && fechaCopia && <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500"><span className="status-pill">Copia disponible 24 h</span><span>Última consulta: {new Date(fechaCopia).toLocaleString('es-EC')}</span></div>}
 
       {loading && <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }).map((_, index) => <div key={index} className="glass-panel h-80 animate-pulse"><div className="h-40 rounded-xl bg-white/5" /><div className="mt-5 h-4 w-2/3 rounded bg-white/5" /><div className="mt-3 h-4 w-1/3 rounded bg-white/5" /></div>)}</div>}
 
