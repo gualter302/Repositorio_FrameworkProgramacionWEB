@@ -12,6 +12,7 @@ services:
       - ./backend/database/005_productos_activos.sql:/docker-entrypoint-initdb.d/005_productos_activos.sql:ro
       - ./backend/database/006_comisiones_liquidaciones.sql:/docker-entrypoint-initdb.d/006_comisiones_liquidaciones.sql:ro
       - ./backend/database/007_pwa.sql:/docker-entrypoint-initdb.d/007_pwa.sql:ro
+      - ./backend/database/008_catalogo_renovado.sql:/docker-entrypoint-initdb.d/008_catalogo_renovado.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U multicatalogo"]
       interval: 5s

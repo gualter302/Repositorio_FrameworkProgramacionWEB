@@ -3,8 +3,8 @@
 ## Estado general
 
 - **Hito actual:** Taller 8 PWA publicado en Render y en validación desde dispositivos móviles.
-- **Última tarea completada:** carga inmediata del catálogo guardado ante una conexión ausente o inestable.
-- **Siguiente tarea pendiente:** desplegar la corrección y confirmar la reapertura sin conexión en Android/iOS.
+- **Última tarea completada:** catálogo propio de 20 productos y carga inmediata de su copia sin conexión.
+- **Siguiente tarea pendiente:** desplegar los cambios y confirmar la reapertura sin conexión en Android/iOS.
 - **Base recomendada:** `Taller8_PWA/`.
 - **Fuentes disponibles:** guía práctica, planificación, análisis funcional y README de cada taller.
 - **Fuentes faltantes:** `Planificacion_Unidad1_Tema5.md` y `Silabo_Framework_Programacion_Web.md`.

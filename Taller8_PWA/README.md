@@ -2,7 +2,8 @@
 
 Base acumulativa del Taller 7: registro, catálogo, pedidos, comisiones y administración.
 Agrega instalación, interfaz sin conexión, catálogo público guardado durante 24 horas,
-carrito local por usuario y checkout con reintentos sin duplicar pedidos.
+carrito local por usuario y checkout con reintentos sin duplicar pedidos. El catálogo incluye
+20 productos propios con ilustraciones locales que también forman parte de la instalación.
 
 ## Levantar el sistema
 
