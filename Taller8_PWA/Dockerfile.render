@@ -1,0 +1,27 @@
+FROM node:24-alpine AS frontend
+
+WORKDIR /src/frontend
+COPY frontend/package*.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN VITE_SHOW_DEMO_CREDENTIALS=false npm run build
+
+FROM golang:1.26-alpine AS backend
+
+WORKDIR /src/backend
+COPY backend/go.mod backend/go.sum ./
+RUN go mod download
+COPY backend/ ./
+RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /app/servidor .
+
+FROM alpine:3.23
+
+RUN addgroup -S app && adduser -S -G app app
+WORKDIR /app
+COPY --from=backend /app/servidor ./servidor
+COPY --from=frontend /src/frontend/dist ./public
+
+ENV STATIC_DIR=/app/public
+EXPOSE 10000
+USER app
+CMD ["/app/servidor"]

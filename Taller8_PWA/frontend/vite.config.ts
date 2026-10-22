@@ -11,7 +11,7 @@ export default defineConfig({
       id: '/', name: 'MultiCatálogo', short_name: 'MultiCatálogo', lang: 'es',
       description: 'Tu catálogo y carrito, también sin conexión',
       start_url: '/catalogo', scope: '/', display: 'standalone',
-      theme_color: '#4f46e5', background_color: '#f8fafc',
+      theme_color: '#020814', background_color: '#020814',
       icons: [
         { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
         { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },

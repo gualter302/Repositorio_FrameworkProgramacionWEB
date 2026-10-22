@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { registerRequest } from '../services/api';
+import { Mail, Network, UserPlus, UserRound, KeyRound } from 'lucide-react';
+import { AuthShell } from './Ui';
 
 const Registro = () => {
   const [parametros] = useSearchParams();
@@ -30,40 +32,37 @@ const Registro = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4 py-8">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-md p-8 border border-slate-200">
-        <h1 className="text-3xl font-bold text-slate-900 text-center">Crear cuenta</h1>
-        <p className="text-slate-500 text-center mt-2 mb-7">Regístrate y forma parte de la red MultiCatálogo.</p>
-
-        {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-5 border border-red-200">{error}</div>}
+    <AuthShell
+      kicker="Nueva cuenta"
+      title="Forma parte de la red"
+      description="Crea tu perfil y recibe un código propio para compartir MultiCatálogo."
+      footer={<>¿Ya tienes cuenta? <Link to="/login" className="font-semibold text-cyan-300 hover:text-cyan-200">Iniciar sesión</Link></>}
+    >
+        {error && <div className="alert-error mb-5" role="alert">{error}</div>}
 
         <form onSubmit={registrar} className="space-y-4">
           <label className="block">
-            <span className="block text-sm font-medium text-slate-700 mb-1">Nombre completo</span>
-            <input required value={nombre} onChange={(event) => setNombre(event.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-300" />
+            <span className="field-label">Nombre completo</span>
+            <span className="relative block"><UserRound aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input required value={nombre} onChange={(event) => setNombre(event.target.value)} className="form-input form-input--with-icon" autoComplete="name" /></span>
           </label>
           <label className="block">
-            <span className="block text-sm font-medium text-slate-700 mb-1">Correo electrónico</span>
-            <input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-300" />
+            <span className="field-label">Correo electrónico</span>
+            <span className="relative block"><Mail aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} className="form-input form-input--with-icon" autoComplete="email" /></span>
           </label>
           <label className="block">
-            <span className="block text-sm font-medium text-slate-700 mb-1">Contraseña</span>
-            <input type="password" required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} className="w-full px-4 py-3 rounded-lg border border-slate-300" />
+            <span className="field-label">Contraseña</span>
+            <span className="relative block"><KeyRound aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input type="password" required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} className="form-input form-input--with-icon" autoComplete="new-password" /></span>
           </label>
           <label className="block">
-            <span className="block text-sm font-medium text-slate-700 mb-1">Código de referido (opcional)</span>
-            <input value={ref} onChange={(event) => setRef(event.target.value.toUpperCase())} className="w-full px-4 py-3 rounded-lg border border-slate-300" placeholder="Ejemplo: ANA" />
+            <span className="field-label">Código de referido (opcional)</span>
+            <span className="relative block"><Network aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input value={ref} onChange={(event) => setRef(event.target.value.toUpperCase())} className="form-input form-input--with-icon uppercase" placeholder="Ejemplo: ANA" /></span>
           </label>
-          <button type="submit" disabled={guardando} className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 disabled:opacity-60">
+          <button type="submit" disabled={guardando} className="btn-primary w-full">
+            <UserPlus size={18} aria-hidden="true" />
             {guardando ? 'Creando cuenta...' : 'Registrarme'}
           </button>
         </form>
-
-        <p className="text-center text-sm text-slate-600 mt-6">
-          ¿Ya tienes cuenta? <Link to="/login" className="text-indigo-600 font-semibold hover:underline">Iniciar sesión</Link>
-        </p>
-      </div>
-    </div>
+    </AuthShell>
   );
 };
 

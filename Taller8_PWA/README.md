@@ -4,26 +4,61 @@ Base acumulativa del Taller 7: registro, catálogo, pedidos, comisiones y admini
 Agrega instalación, interfaz sin conexión, catálogo público guardado durante 24 horas,
 carrito local por usuario y checkout con reintentos sin duplicar pedidos.
 
-## Ejecutar
+## Levantar el sistema
 
-En backend:
+Antes de comenzar, abrir Docker Desktop y comprobar que Node.js y npm estén instalados.
+Los siguientes comandos parten desde la raíz del repositorio.
+
+En una primera terminal, levantar el backend, PostgreSQL y Redis:
 
 ```powershell
+cd Taller8_PWA\backend
 docker compose -p multicatalogo-pwa up --build -d
+docker compose -p multicatalogo-pwa ps
 ```
 
-En frontend:
+En una segunda terminal, instalar las dependencias, compilar la PWA y servirla:
 
 ```powershell
+cd Taller8_PWA\frontend
 npm ci
 npm run build
-npm run preview -- --host localhost --port 4178
+npm run preview -- --host 0.0.0.0 --port 4178
 ```
 
-Abrir http://localhost:4178/catalogo. Vite redirige /api al backend en 3008.
-La base usa 5438 y Redis 6388; el volumen multicatalogo-pwa-pgdata es independiente.
-Las cuentas de demostración conservan admin@upse.edu.ec y cliente@upse.edu.ec / 123456.
-Para desarrollo usar npm run dev; comprobar el service worker con build y preview.
+Mantener abierta la segunda terminal y visitar http://localhost:4178/catalogo.
+El frontend redirige las peticiones `/api` al backend que escucha en el puerto 3008.
+La base usa el puerto 5438 y Redis el 6388; el volumen `multicatalogo-pwa-pgdata`
+es independiente de los talleres anteriores.
+
+Las cuentas de demostración son:
+
+- Administrador: `admin@upse.edu.ec` / `123456`
+- Cliente: `cliente@upse.edu.ec` / `123456`
+
+Para abrir el sistema desde un teléfono conectado a la misma red Wi-Fi, ejecutar `ipconfig`,
+buscar la dirección IPv4 del equipo y visitar `http://DIRECCION_IP:4178/catalogo` desde el
+teléfono. El Firewall de Windows debe permitir la conexión al puerto 4178. Esta dirección HTTP
+sirve para revisar la aplicación; instalar la PWA y usar su modo sin conexión en el teléfono
+requiere publicarla con HTTPS.
+
+Si el teléfono no abre la página, ejecutar una vez PowerShell como administrador y permitir el
+puerto solamente en redes privadas:
+
+```powershell
+New-NetFirewallRule -DisplayName "MultiCatalogo PWA 4178" -Direction Inbound -Protocol TCP -LocalPort 4178 -Action Allow -Profile Private -RemoteAddress LocalSubnet
+```
+
+Para detener el sistema, usar `Ctrl+C` en la terminal del frontend y luego ejecutar:
+
+```powershell
+cd Taller8_PWA\backend
+docker compose -p multicatalogo-pwa down
+```
+
+Este último comando detiene los contenedores sin borrar la información de PostgreSQL.
+Para desarrollo se puede usar `npm run dev`; el service worker debe comprobarse con
+`npm run build` y `npm run preview`.
 
 ## Uso sin conexión
 
@@ -63,25 +98,56 @@ En iPhone usar Safari → Compartir → Añadir a pantalla de inicio.
 La nueva versión se anuncia y solo se aplica por decisión del usuario desde catálogo o carrito.
 El carrito se guarda antes de actualizar. No se fuerza una recarga durante checkout o administración.
 
-## HTTPS y producción
+## Publicar en Render
 
-Hay Dockerfile de frontend y configuración Caddy con proxy /api y soporte para rutas React.
-Desde esta carpeta, definir DOMAIN, DB_PASSWORD y JWT_SECRET (al menos 32 caracteres) y ejecutar:
+La configuración `render.yaml` crea un servicio web, PostgreSQL y una instancia Key Value usada
+como caché. El archivo `Dockerfile.render` compila React y Go en una sola imagen. La página y la
+API comparten el mismo dominio, por lo que no hay que copiar direcciones en `VITE_API_URL` ni
+configurar CORS entre dos servicios.
+
+Antes de comenzar, fusionar esta rama en `main` y subirla a GitHub. Después:
+
+1. Crear una cuenta en https://render.com y conectar la cuenta de GitHub.
+2. En el panel de Render elegir **New → Blueprint** y conectar el repositorio
+   `gualter302/Repositorio_FrameworkProgramacionWEB`.
+3. Seleccionar la rama `main` y escribir `Taller8_PWA/render.yaml` en **Blueprint Path**.
+4. Render solicitará `ADMIN_PASSWORD`. Escribir una contraseña privada de al menos 12 caracteres;
+   reemplazará `123456` únicamente para la cuenta `admin@upse.edu.ec` publicada.
+5. Revisar los tres recursos y elegir **Apply**. El primer despliegue puede tardar varios minutos
+   porque compila el frontend, el backend y crea la base.
+6. Abrir el servicio `multicatalogo-pwa-gualter302`. Primero comprobar `/api/health` y después
+   abrir `/login`. Las tablas, migraciones y datos iniciales se crean automáticamente.
+7. Iniciar sesión con `admin@upse.edu.ec` y la contraseña elegida en el paso 4. La tarjeta con
+   `123456` solo aparece en compilaciones locales y queda oculta en Render.
+8. Probar catálogo, registro, carrito, pedido y administración. En un teléfono abrir la dirección
+   HTTPS de Render, visitar el catálogo una vez e instalar la PWA desde el navegador.
+
+Los siguientes cambios enviados a `main` se despliegan automáticamente. Si falla una nueva
+versión, revisar **Events** y **Logs** del servicio. El control de salud es `/api/health` y Render
+no reemplaza la versión anterior hasta que la nueva responde correctamente.
+
+### Límites del plan gratuito
+
+- El servicio web se suspende después de 15 minutos sin visitas; la primera apertura puede tardar
+  cerca de un minuto.
+- PostgreSQL gratuito tiene 1 GB, no incluye copias de seguridad y vence 30 días después de crearse.
+- Key Value gratuito puede perder su contenido al reiniciarse. En este proyecto no se pierden datos
+  importantes porque solo contiene caché; PostgreSQL sigue siendo la fuente principal.
+- Para mantener datos reales se debe actualizar PostgreSQL a un plan de pago antes del vencimiento
+  o exportar la información y crear otra base.
+
+### Alternativa para un servidor propio
+
+El `compose.production.yml` y Caddy continúan disponibles para un VPS con dominio propio. Desde
+`Taller8_PWA`, definir `DOMAIN`, `DB_PASSWORD` y `JWT_SECRET` y ejecutar:
 
 ```powershell
 docker compose -f compose.production.yml up --build -d
 ```
 
-El dominio debe apuntar a un servidor con puertos 80/443 accesibles para que Caddy obtenga
-un certificado. No se publicó en internet: falta proporcionar dominio y alojamiento.
-La instalación en iOS/Android reales y HTTPS público quedan pendientes de esa publicación.
-El frontend usa /api; nunca incluir secretos en variables VITE_.
-Antes de producción cambiar las contraseñas de demostración y hacer copia de PostgreSQL.
-
-En una base existente aplicar database/007_pwa.sql manualmente: los scripts de inicio solo
-se ejecutan al crear el volumen. No borrar volúmenes para actualizar.
-Para regresar de versión desplegar la imagen anterior, conservar PostgreSQL y recompilar
-el frontend anterior con un nuevo service worker; el carrito usa una clave estable.
+En esa alternativa el dominio debe apuntar al servidor y permitir los puertos 80 y 443. Para
+regresar de versión se despliega la imagen anterior conservando PostgreSQL; nunca se eliminan los
+volúmenes para actualizar.
 
 ## Verificación
 

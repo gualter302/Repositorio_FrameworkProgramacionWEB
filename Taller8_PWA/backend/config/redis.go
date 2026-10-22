@@ -18,15 +18,26 @@ func ConectarRedis(ctx context.Context) (*redis.Client, error) {
 	}
 
 	cliente := redis.NewClient(opciones)
-	ctxPing, cancelar := context.WithTimeout(ctx, 5*time.Second)
-	defer cancelar()
-
-	if err := cliente.Ping(ctxPing).Err(); err != nil {
-		_ = cliente.Close()
-		return nil, fmt.Errorf("Redis no respondió: %w", err)
+	var ultimoError error
+	for intento := 1; intento <= 5; intento++ {
+		ctxPing, cancelar := context.WithTimeout(ctx, 5*time.Second)
+		ultimoError = cliente.Ping(ctxPing).Err()
+		cancelar()
+		if ultimoError == nil {
+			return cliente, nil
+		}
+		if intento < 5 {
+			select {
+			case <-ctx.Done():
+				_ = cliente.Close()
+				return nil, ctx.Err()
+			case <-time.After(2 * time.Second):
+			}
+		}
 	}
 
-	return cliente, nil
+	_ = cliente.Close()
+	return nil, fmt.Errorf("Redis no respondió después de varios intentos: %w", ultimoError)
 }
 
 func opcionesRedis() (*redis.Options, error) {

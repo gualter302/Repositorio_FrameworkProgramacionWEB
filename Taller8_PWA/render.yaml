@@ -1,0 +1,41 @@
+services:
+  - type: keyvalue
+    name: multicatalogo-pwa-cache
+    plan: free
+    region: oregon
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+    persistenceMode: off
+
+  - type: web
+    name: multicatalogo-pwa-gualter302
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: Taller8_PWA
+    dockerfilePath: ./Dockerfile.render
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: multicatalogo-pwa-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: multicatalogo-pwa-cache
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_PASSWORD
+        sync: false
+
+databases:
+  - name: multicatalogo-pwa-db
+    plan: free
+    region: oregon
+    postgresMajorVersion: "16"
+    databaseName: multicatalogo
+    user: multicatalogo
+    ipAllowList: []

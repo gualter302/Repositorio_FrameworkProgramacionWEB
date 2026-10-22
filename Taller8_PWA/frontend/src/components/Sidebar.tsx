@@ -1,7 +1,8 @@
 import type { ComponentType, SVGProps } from "react";
 import { NavLink } from "react-router-dom";
-import { CatalogoIcon, DashboardIcon, RedIcon } from "../icons";
+import { BadgeDollarSign, BarChart3, Boxes, ClipboardList, LayoutDashboard, LogIn, Network, PackagePlus, ReceiptText, UserPlus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { BrandMark } from './Ui';
 
 // Props del Sidebar: isCollapsed = true -> ancho de 80px y solo iconos.
 interface SidebarProps {
@@ -17,36 +18,42 @@ interface MenuItem {
 
 // Opciones del menú (cada una con su icono)
 const menuItems: MenuItem[] = [
-  { to: "/", label: "Dashboard", Icon: DashboardIcon },
-  { to: "/catalogo", label: "Catálogo", Icon: CatalogoIcon },
-  { to: "/pedidos", label: "Mis pedidos", Icon: CatalogoIcon },
-  { to: "/comisiones", label: "Mis comisiones", Icon: CatalogoIcon },
-  { to: "/mi-red", label: "Mi Red", Icon: RedIcon },
+  { to: "/", label: "Vista general", Icon: LayoutDashboard },
+  { to: "/catalogo", label: "Catálogo", Icon: Boxes },
+  { to: "/pedidos", label: "Mis pedidos", Icon: ReceiptText },
+  { to: "/comisiones", label: "Mis comisiones", Icon: BadgeDollarSign },
+  { to: "/mi-red", label: "Mi red", Icon: Network },
+];
+
+const guestItems: MenuItem[] = [
+  { to: '/catalogo', label: 'Catálogo', Icon: Boxes },
+  { to: '/login', label: 'Iniciar sesión', Icon: LogIn },
+  { to: '/registro', label: 'Crear cuenta', Icon: UserPlus },
 ];
 
 const Sidebar = ({ isCollapsed, onNavigate }: SidebarProps) => {
-  const { role } = useAuth();
-  const items = role === "admin"
-    ? [...menuItems, { to: "/admin/productos", label: "Productos", Icon: CatalogoIcon }, { to: "/admin/pedidos", label: "Pedidos", Icon: CatalogoIcon }, { to: "/admin/comisiones", label: "Comisiones", Icon: CatalogoIcon }, { to: "/admin/reportes", label: "Reportes", Icon: CatalogoIcon }]
+  const { isAuthenticated, role } = useAuth();
+  const items = !isAuthenticated ? guestItems : role === "admin"
+    ? [...menuItems, { to: "/admin/productos", label: "Productos", Icon: PackagePlus }, { to: "/admin/pedidos", label: "Pedidos", Icon: ClipboardList }, { to: "/admin/comisiones", label: "Liquidaciones", Icon: BadgeDollarSign }, { to: "/admin/reportes", label: "Reportes", Icon: BarChart3 }]
     : menuItems;
   return (
     <aside
       // Celular: panel fijo que se desliza desde la izquierda (oculto si isCollapsed).
       // Escritorio (md+): parte del layout; ancho 80px si isCollapsed, 256px si no.
-      className={`fixed inset-y-0 left-0 z-40 md:static md:z-auto ${
+      className={`fixed inset-y-0 left-0 z-40 border-r border-cyan-200/10 md:static md:z-auto ${
         isCollapsed ? "-translate-x-full w-64 md:translate-x-0 md:w-20" : "translate-x-0 w-64"
-      } shrink-0 overflow-hidden bg-slate-900 text-white flex flex-col transition-all duration-300`}
+      } shrink-0 overflow-hidden bg-slate-950/92 text-white flex flex-col backdrop-blur-xl transition-all duration-300`}
     >
       {/* Cabecera: nombre completo o solo las iniciales si está colapsado */}
       <div
-        className={`h-16 flex items-center border-b border-slate-700 font-bold whitespace-nowrap ${
-          isCollapsed ? "justify-center text-xl" : "px-6 text-2xl"
+        className={`min-h-18 flex items-center border-b border-cyan-200/10 whitespace-nowrap ${
+          isCollapsed ? "justify-center" : "px-5"
         }`}
       >
-        {isCollapsed ? "MC" : "MultiCatálogo"}
+        <BrandMark compact={isCollapsed} />
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 space-y-1.5 overflow-y-auto p-3" aria-label="Navegación principal">
         {items.map(({ to, label, Icon }) => (
           <NavLink
             key={to}
@@ -56,16 +63,17 @@ const Sidebar = ({ isCollapsed, onNavigate }: SidebarProps) => {
             title={isCollapsed ? label : undefined} // tooltip cuando solo se ven iconos
             aria-label={label}
             className={({ isActive }) =>
-              `flex items-center gap-3 p-3 rounded whitespace-nowrap transition ${
+              `group flex min-h-12 items-center gap-3 rounded-xl border px-3 py-2.5 whitespace-nowrap transition ${
                 isCollapsed ? "justify-center" : ""
-              } ${isActive ? "bg-slate-800 text-white" : "text-slate-300 hover:bg-slate-800 hover:text-white"}`
+              } ${isActive ? "border-cyan-300/35 bg-cyan-300/10 text-cyan-200" : "border-transparent text-slate-400 hover:border-cyan-200/10 hover:bg-white/5 hover:text-white"}`
             }
           >
-            <Icon className="w-6 h-6 shrink-0" />
-            {!isCollapsed && <span>{label}</span>}
+            <Icon className="h-5 w-5 shrink-0" />
+            {!isCollapsed && <span className="text-sm font-medium">{label}</span>}
           </NavLink>
         ))}
       </nav>
+      {!isCollapsed && <div className="m-3 rounded-xl border border-cyan-200/10 bg-white/[0.03] p-3 text-xs leading-relaxed text-slate-500">PWA preparada para trabajar con un catálogo guardado cuando no hay conexión.</div>}
     </aside>
   );
 };

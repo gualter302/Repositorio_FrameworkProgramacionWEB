@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+**/test-results
+**/.vite
+**/*.log
+**/.env
+!**/.env.example
+backend/.docker-data

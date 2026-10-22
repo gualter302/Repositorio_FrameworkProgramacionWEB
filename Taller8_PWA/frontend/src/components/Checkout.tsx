@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { ApiError, checkoutRequest, getProductos, type CheckoutRequest } from '../services/api';
+import { ArrowLeft, CheckCircle2, CreditCard, MapPin, ShoppingBag } from 'lucide-react';
+import { EmptyState, PageHeader } from './Ui';
 
 interface DatosEnvio {
   nombre: string;
@@ -33,12 +35,7 @@ const Checkout = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="bg-white p-10 rounded-lg border border-slate-200 text-center">
-        <p className="text-slate-600 text-lg mb-4">No tienes productos en el carrito.</p>
-        <Link to="/catalogo" className="text-indigo-600 font-semibold hover:underline">
-          Ir al catálogo
-        </Link>
-      </div>
+      <div className="page"><EmptyState icon={ShoppingBag} title="No hay productos para confirmar" description="Añade al menos un producto antes de completar los datos de envío." action={<Link to="/catalogo" className="btn-primary"><ArrowLeft size={17} />Ir al catálogo</Link>} /></div>
     );
   }
 
@@ -97,12 +94,12 @@ const Checkout = () => {
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">Finalizar Compra</h1>
+    <div className="page page-stack">
+      <PageHeader kicker="Paso final" title="Finalizar compra" description="Completa los datos de entrega. Antes de registrar el pedido volveremos a comprobar precio y existencias." />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <form onSubmit={confirmarPedido} className="lg:col-span-2 space-y-5">
-          <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Datos de Envío</h2>
+          <section className="glass-panel">
+            <div className="mb-5 flex items-center gap-3"><span className="empty-icon h-10 w-10 rounded-xl"><MapPin size={20} /></span><div><p className="page-kicker mb-1">Entrega</p><h2 className="section-title">Datos de envío</h2></div></div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {([
                 ['nombre', 'Nombre completo', 'text'],
@@ -112,64 +109,66 @@ const Checkout = () => {
                 ['telefono', 'Teléfono', 'tel'],
               ] as const).map(([campo, etiqueta, tipo]) => (
                 <label key={campo} className={campo === 'direccion' ? 'md:col-span-2' : ''}>
-                  <span className="block text-sm font-medium text-slate-700 mb-1">{etiqueta} *</span>
+                  <span className="field-label">{etiqueta} *</span>
                   <input
                     type={tipo}
                     required
                     value={datos[campo]}
                     onChange={(event) => actualizarDato(campo, event.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 outline-none"
+                    className="form-input"
                   />
                 </label>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Método de Pago</h2>
+          <section className="glass-panel">
+            <div className="mb-5 flex items-center gap-3"><span className="empty-icon h-10 w-10 rounded-xl"><CreditCard size={20} /></span><div><p className="page-kicker mb-1">Preferencia</p><h2 className="section-title">Método de pago</h2></div></div>
             <div className="space-y-3">
               {METODOS_PAGO.map((metodo) => (
-                <label key={metodo} className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer">
+                <label key={metodo} className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-3.5 transition ${datos.metodoPago === metodo ? 'border-cyan-300/45 bg-cyan-300/10' : 'border-cyan-200/10 bg-white/[0.025] hover:border-cyan-200/25'}`}>
                   <input
                     type="radio"
                     name="metodoPago"
                     value={metodo}
                     checked={datos.metodoPago === metodo}
                     onChange={(event) => actualizarDato('metodoPago', event.target.value)}
-                    className="accent-indigo-600"
+                    className="h-4 w-4 accent-cyan-400"
                   />
-                  <span className="text-sm text-slate-700">{metodo}</span>
+                  <span className="text-sm text-slate-200">{metodo}</span>
                 </label>
               ))}
             </div>
-          </div>
+            <p className="mt-4 text-xs leading-relaxed text-slate-500">Esta selección se guarda con el pedido. La aplicación todavía no procesa cobros con tarjetas ni transferencias bancarias.</p>
+          </section>
 
-          {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg border border-red-200">{error}</div>}
+          {error && <div className="alert-error" role="alert">{error}</div>}
           <button
             type="submit"
             disabled={procesando}
-            className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50"
+            className="btn-primary w-full"
           >
+            <CheckCircle2 size={18} />
             {procesando ? 'Registrando pedido...' : 'Confirmar Pedido'}
           </button>
         </form>
 
-        <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm h-fit">
-          <h2 className="text-lg font-bold text-slate-800 mb-4">Resumen del Pedido</h2>
-          <div className="space-y-3 border-b border-slate-100 pb-4 mb-4">
+        <aside className="glass-panel glass-panel--accent h-fit lg:sticky lg:top-4">
+          <p className="page-kicker">Pedido</p><h2 className="section-title mb-5">Resumen del Pedido</h2>
+          <div className="mb-4 space-y-3 border-b border-cyan-200/10 pb-4">
             {cart.map((item) => (
               <div key={item.id} className="flex justify-between text-sm gap-4">
-                <span className="text-slate-600">{item.nombre} × {item.cantidad}</span>
-                <span className="font-semibold">${(item.precio * item.cantidad).toFixed(2)}</span>
+                <span className="text-slate-400">{item.nombre} × {item.cantidad}</span>
+                <span className="mono text-slate-200">${(item.precio * item.cantidad).toFixed(2)}</span>
               </div>
             ))}
           </div>
           <div className="flex justify-between items-center">
-            <span className="font-bold">Total estimado</span>
-            <span className="text-2xl font-bold text-indigo-600">${totalPrice.toFixed(2)}</span>
+            <span className="font-bold text-white">Total estimado</span>
+            <span className="mono text-2xl text-cyan-300">${totalPrice.toFixed(2)}</span>
           </div>
           <p className="text-xs text-slate-500 mt-3">El servidor vuelve a calcular el total con los precios guardados.</p>
-        </div>
+        </aside>
       </div>
     </div>
   );

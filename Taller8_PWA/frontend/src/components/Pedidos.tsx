@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getMisPedidos, type PedidoResumen } from '../services/api';
+import { PackageOpen } from 'lucide-react';
+import { EmptyState, PageHeader, StatusBadge } from './Ui';
 
 const Pedidos = () => {
   const [pedidos, setPedidos] = useState<PedidoResumen[]>([]);
@@ -14,21 +16,18 @@ const Pedidos = () => {
   }, []);
 
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Mis pedidos</h1>
-        <p className="text-slate-500 mt-1">Consulta el estado y detalle de tus compras.</p>
-      </div>
-      {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg">{error}</div>}
-      {pedidos.length === 0 && !error && <div className="bg-white p-6 rounded-lg border text-slate-500">Todavía no tienes pedidos.</div>}
+    <div className="page page-stack">
+      <PageHeader kicker="Historial" title="Mis pedidos" description="Consulta el estado, la fecha y el detalle de cada compra registrada." />
+      {error && <div className="alert-error" role="alert">{error}</div>}
+      {pedidos.length === 0 && !error && <EmptyState icon={PackageOpen} title="Todavía no tienes pedidos" description="Cuando completes una compra aparecerá aquí con su estado y detalle." />}
       {pedidos.map((pedido) => (
-        <article key={pedido.id} className="bg-white border border-slate-200 rounded-lg p-5">
+        <article key={pedido.id} className="glass-panel transition hover:border-cyan-300/30">
           <div className="flex flex-wrap justify-between gap-3 mb-4">
-            <div><h2 className="font-bold text-slate-800">{pedido.numero}</h2><p className="text-sm text-slate-500">{new Date(pedido.fecha).toLocaleString('es-EC')}</p></div>
-            <div className="text-right"><span className="inline-block rounded-full bg-indigo-50 text-indigo-700 px-3 py-1 text-sm font-semibold">{pedido.estado}</span><p className="font-bold mt-1">${pedido.total.toFixed(2)}</p></div>
+            <div><p className="page-kicker mb-1">Pedido</p><h2 className="mono font-semibold text-white">{pedido.numero}</h2><p className="mt-1 text-sm text-slate-500">{new Date(pedido.fecha).toLocaleString('es-EC')}</p></div>
+            <div className="text-right"><StatusBadge>{pedido.estado}</StatusBadge><p className="mono mt-2 text-cyan-300">${pedido.total.toFixed(2)}</p></div>
           </div>
-          <div className="space-y-2 border-t pt-3">
-            {pedido.items.map((item) => <div key={item.productoId} className="flex justify-between text-sm"><span>{item.nombre} × {item.cantidad}</span><span>${item.subtotal.toFixed(2)}</span></div>)}
+          <div className="space-y-2 border-t border-cyan-200/10 pt-4">
+            {pedido.items.map((item) => <div key={item.productoId} className="flex justify-between gap-4 text-sm"><span className="text-slate-400">{item.nombre} × {item.cantidad}</span><span className="mono text-slate-200">${item.subtotal.toFixed(2)}</span></div>)}
           </div>
         </article>
       ))}

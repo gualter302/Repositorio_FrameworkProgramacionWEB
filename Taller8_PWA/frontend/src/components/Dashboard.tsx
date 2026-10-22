@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getRed, type Referido } from '../services/api';
+import { ArrowUpRight, BadgeDollarSign, DollarSign, Network } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { PageHeader } from './Ui';
 
 const aLista = (nodos: Referido[]): Referido[] =>
   nodos.flatMap((nodo) => [nodo, ...aLista(nodo.hijos ?? [])]);
@@ -25,24 +28,30 @@ const Dashboard = () => {
   }, [red]);
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">Resumen General</h1>
-      {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg mb-4">{error}</div>}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-100">
-          <p className="text-sm text-slate-500 uppercase font-semibold">Ventas de la red</p>
-          <p className="text-3xl font-bold text-indigo-600">${resumen.ventas.toFixed(2)}</p>
+    <div className="page page-stack">
+      <PageHeader kicker="Actividad" title="Resumen general" description="Una lectura rápida de las ventas, comisiones y personas que forman tu red." action={<Link to="/catalogo" className="btn-secondary">Ver catálogo <ArrowUpRight size={17} /></Link>} />
+      {error && <div className="alert-error" role="alert">{error}</div>}
+      <div className="metric-grid">
+        <div className="metric-card glass-panel--accent">
+          <DollarSign className="mb-5 text-cyan-300" size={22} aria-hidden="true" />
+          <p className="metric-label">Ventas de la red</p>
+          <p className="metric-value">${resumen.ventas.toFixed(2)}</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-100">
-          <p className="text-sm text-slate-500 uppercase font-semibold">Comisiones</p>
-          <p className="text-3xl font-bold text-indigo-600">${resumen.comisiones.toFixed(2)}</p>
+        <div className="metric-card">
+          <BadgeDollarSign className="mb-5 text-cyan-300" size={22} aria-hidden="true" />
+          <p className="metric-label">Comisiones</p>
+          <p className="metric-value">${resumen.comisiones.toFixed(2)}</p>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-100">
-          <p className="text-sm text-slate-500 uppercase font-semibold">Referidos activos</p>
-          <p className="text-3xl font-bold text-indigo-600">{resumen.activos}</p>
+        <div className="metric-card">
+          <Network className="mb-5 text-cyan-300" size={22} aria-hidden="true" />
+          <p className="metric-label">Referidos activos</p>
+          <p className="metric-value">{resumen.activos}</p>
         </div>
       </div>
-      <p className="text-sm text-slate-500 mt-5">Después de una compra, las comisiones se calculan en segundo plano y este resumen muestra el resultado actualizado.</p>
+      <div className="glass-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div><h2 className="section-title">Datos que se actualizan contigo</h2><p className="section-copy mt-1 text-sm">Después de una compra, las comisiones se calculan en segundo plano y aparecen aquí.</p></div>
+        <Link to="/mi-red" className="btn-secondary shrink-0">Explorar mi red <ArrowUpRight size={17} /></Link>
+      </div>
     </div>
   );
 };

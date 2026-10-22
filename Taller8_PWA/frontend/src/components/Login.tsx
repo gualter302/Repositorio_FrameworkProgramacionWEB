@@ -3,12 +3,15 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginRequest } from '../services/api';
+import { KeyRound, LogIn, Mail } from 'lucide-react';
+import { AuthShell } from './Ui';
 
 const Login = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false); // true mientras se espera la respuesta
+  const mostrarCuentaDemo = import.meta.env.VITE_SHOW_DEMO_CREDENTIALS !== 'false';
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -32,60 +35,66 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-md p-8 border border-slate-200">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-slate-900">MultiCatálogo</h2>
-          <p className="text-slate-500 mt-2">Ingresa a tu cuenta para continuar</p>
-        </div>
-
+    <AuthShell
+      kicker="Acceso seguro"
+      title="Vuelve a tu catálogo"
+      description="Administra productos, pedidos y tu red desde un mismo espacio."
+      footer={<>¿Aún no tienes cuenta? <Link to="/registro" className="font-semibold text-cyan-300 hover:text-cyan-200">Crear cuenta</Link></>}
+    >
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm mb-6 text-center border border-red-200">
+          <div className="alert-error mb-6" role="alert">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Correo Electrónico</label>
-            <input
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <label className="block">
+            <span className="field-label">Correo electrónico</span>
+            <span className="relative block">
+              <Mail aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+              <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition"
+              className="form-input form-input--with-icon"
               placeholder="admin@upse.edu.ec"
+              autoComplete="email"
               required
-            />
-          </div>
+              />
+            </span>
+          </label>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Contraseña</label>
-            <input
+          <label className="block">
+            <span className="field-label">Contraseña</span>
+            <span className="relative block">
+              <KeyRound aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+              <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600 outline-none transition"
+              className="form-input form-input--with-icon"
               placeholder="••••••"
+              autoComplete="current-password"
               required
-            />
-          </div>
+              />
+            </span>
+          </label>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="btn-primary w-full"
           >
+            <LogIn size={18} aria-hidden="true" />
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
-        <p className="text-center text-sm text-slate-600 mt-6">
-          ¿Aún no tienes cuenta?{' '}
-          <Link to="/registro" className="text-indigo-600 font-semibold hover:underline">
-            Crear cuenta
-          </Link>
-        </p>
-      </div>
-    </div>
+        {mostrarCuentaDemo && <div className="mt-6 rounded-2xl border border-cyan-200/15 bg-cyan-300/[0.05] p-4 text-sm text-slate-300">
+          <p className="mb-2 font-semibold text-cyan-200">Cuenta de demostración</p>
+          <p className="break-words"><span className="text-slate-500">Correo:</span> admin@upse.edu.ec</p>
+          <p><span className="text-slate-500">Contraseña:</span> 123456</p>
+        </div>}
+    </AuthShell>
   );
 };
 
