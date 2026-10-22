@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16
+    container_name: multicatalogo-pwa-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-multicatalogo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-multicatalogo}
+      POSTGRES_DB: ${DB_NAME:-multicatalogo}
+    ports:
+      - "127.0.0.1:5438:5432"
+    volumes:
+      - pwa_pgdata:/var/lib/postgresql/data
+      # init.sql solo se ejecuta la primera vez que se crea el volumen de datos.
+      - ./database/init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+      - ./database/004_registro_referidos.sql:/docker-entrypoint-initdb.d/004_registro_referidos.sql:ro
+      - ./database/005_productos_activos.sql:/docker-entrypoint-initdb.d/005_productos_activos.sql:ro
+      - ./database/006_comisiones_liquidaciones.sql:/docker-entrypoint-initdb.d/006_comisiones_liquidaciones.sql:ro
+      - ./database/007_pwa.sql:/docker-entrypoint-initdb.d/007_pwa.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-multicatalogo} -d ${DB_NAME:-multicatalogo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: multicatalogo-pwa-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6388:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: multicatalogo-pwa-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${DB_USER:-multicatalogo}:${DB_PASSWORD:-multicatalogo}@db:5432/${DB_NAME:-multicatalogo}?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-clave-local-taller7-cambiar-en-produccion-2026}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+    ports:
+      - "127.0.0.1:3008:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pwa_pgdata:
+    name: multicatalogo-pwa-pgdata

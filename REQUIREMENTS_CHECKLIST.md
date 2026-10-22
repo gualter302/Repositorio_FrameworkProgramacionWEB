@@ -2,10 +2,10 @@
 
 ## Estado general
 
-- **Hito actual:** Taller 7, registro y red de referidos terminado y verificado.
-- **Última tarea completada:** CRUD administrativo de productos con permisos y desactivación lógica.
-- **Siguiente tarea pendiente:** revisión de accesibilidad y pruebas manuales finales.
-- **Base recomendada:** `Taller7_Registro_Referidos/`.
+- **Hito actual:** Taller 8 PWA implementado y probado localmente; publicación y validación móvil pendientes.
+- **Última tarea completada:** PWA, catálogo offline, carrito por usuario y checkout idempotente con pruebas locales.
+- **Siguiente tarea pendiente:** definir dominio/alojamiento y probar instalación HTTPS en Android/iOS.
+- **Base recomendada:** `Taller8_PWA/`.
 - **Fuentes disponibles:** guía práctica, planificación, análisis funcional y README de cada taller.
 - **Fuentes faltantes:** `Planificacion_Unidad1_Tema5.md` y `Silabo_Framework_Programacion_Web.md`.
 
@@ -134,6 +134,82 @@
 - [x] Calcular ventas, pedidos, ticket promedio y comisiones desde PostgreSQL.
 - [x] Mostrar productos y referidos principales en el Dashboard administrativo.
 - [x] Mostrar comisiones pendientes de pago.
+
+## Plan de conversión a PWA
+
+Objetivo: convertir MultiCatálogo en una aplicación instalable, con interfaz y catálogo
+consultado disponibles sin conexión. Las compras y operaciones administrativas requieren
+confirmación del servidor. Base: `Taller7_Registro_Referidos/`, conservando sus funciones.
+
+Las fases se ejecutan en orden y se marcan únicamente después de superar su verificación.
+Implementación acumulativa en `Taller8_PWA/`, en la rama `plan-pwa` por petición del usuario.
+Las casillas pendientes corresponden a verificaciones de despliegue, dispositivos y actualización.
+
+### PWA Fase 1 — Preparación y alcance
+
+- [x] Crear una carpeta acumulativa para el taller PWA desde la última versión funcional y registrarla en `PROJECT_MAP.md`.
+- [ ] Comprobar login, catálogo, carrito, checkout y permisos antes de introducir el service worker.
+- [x] Definir qué funciona sin conexión: interfaz, catálogo previamente consultado y carrito local.
+- [x] Definir como operaciones en línea: login, registro, checkout, cambios de productos/pedidos y liquidaciones.
+- [x] Preparar `VITE_API_URL` para desarrollo y producción, evitando `localhost` en la versión publicada.
+- [ ] Revisar navegación móvil y formularios a 360–375 px, teclado y botones táctiles.
+- [ ] **Verificación:** base compila, flujos principales pasan y el alcance sin conexión queda documentado en el README del taller.
+
+### PWA Fase 2 — Identidad e instalación
+
+- [x] Integrar la generación del manifest y service worker en la compilación de Vite, con versiones compatibles de las dependencias.
+- [x] Definir `id`, nombre, nombre corto, idioma español, `start_url`, `scope`, colores y apertura `standalone`.
+- [x] Crear iconos de 192 y 512 px, una variante maskable y un icono para dispositivos Apple.
+- [x] Actualizar título, descripción, idioma HTML y color del navegador con la identidad de MultiCatálogo.
+- [x] Añadir una acción de instalación cuando el navegador la permita e instrucciones para instalación manual en iOS.
+- [ ] **Verificación:** manifest sin errores, iconos visibles y apertura de la aplicación instalada en modo independiente en navegadores compatibles.
+
+### PWA Fase 3 — Interfaz y catálogo sin conexión
+
+- [x] Guardar los archivos versionados de la interfaz y ofrecer una respuesta de navegación para las rutas de React.
+- [x] Guardar solamente consultas públicas de catálogo: intentar obtener datos actuales y usar la última copia cuando falle la conexión.
+- [x] Limitar duración y tamaño de la caché de catálogo e imágenes; mostrar una imagen de respaldo cuando falte una imagen externa.
+- [x] Mostrar aviso de desconexión, fecha de la última consulta y aclarar que precio y existencias se validan al comprar.
+- [x] Excluir del almacenamiento del service worker las respuestas de sesión, red privada, pedidos, comisiones, reportes y toda escritura.
+- [x] Ofrecer un estado claro si la aplicación todavía no tiene un catálogo guardado.
+- [ ] **Verificación:** tras una visita en línea, cerrar y abrir sin conexión permite navegar por la interfaz y el catálogo guardado; las rutas privadas no revelan respuestas cacheadas.
+
+### PWA Fase 4 — Carrito y sesión
+
+- [x] Persistir el carrito por usuario en almacenamiento local y validar su estructura al recuperarlo.
+- [x] Mantener separados los carritos al cambiar de cuenta y definir su conservación al cerrar sesión.
+- [x] Permitir preparar el carrito sin conexión y conservarlo al reiniciar la aplicación.
+- [x] Gestionar token vencido y respuestas 401: solicitar inicio de sesión sin perder el carrito del usuario correspondiente.
+- [x] Bloquear la confirmación sin conexión y conservar el carrito ante errores del servidor.
+- [x] Revalidar precio, disponibilidad y stock al volver a conectar, mostrando los cambios antes de confirmar.
+- [ ] **Verificación:** recarga, cierre, desconexión y cambio de cuenta conservan el carrito correcto sin mezclar información entre usuarios.
+
+### PWA Fase 5 — Compras y actualizaciones seguras
+
+- [x] Mantener compras y liquidaciones fuera de cualquier cola de reenvío automático del service worker.
+- [x] Evitar envíos repetidos mientras una operación está en curso y tratar una respuesta perdida como resultado incierto.
+- [x] Implementar una clave de idempotencia para checkout, con restricción persistente en PostgreSQL, para que reintentar la misma compra no duplique pedidos ni descuentos de stock.
+- [x] Avisar cuando exista una nueva versión y permitir actualizar después de guardar el estado local y terminar operaciones en curso.
+- [x] Eliminar cachés antiguas sin borrar el carrito ni forzar recargas durante un formulario o una compra.
+- [x] **Verificación:** reintento contra PostgreSQL crea un solo pedido; dos versiones simuladas del service worker conservan el carrito y bloquean actualizar en checkout.
+
+### PWA Fase 6 — Despliegue HTTPS
+
+- [ ] Preparar la compilación de producción y el alojamiento del frontend y la API bajo HTTPS.
+- [ ] Configurar rutas de React, acceso a `/api`, CORS cuando corresponda y ausencia de contenido HTTP dentro del sitio HTTPS.
+- [x] Configurar el alcance y los encabezados de caché del service worker, manifest y archivos versionados para que se detecten actualizaciones.
+- [x] Mantener secretos del backend fuera del paquete frontend y documentar variables, arranque y recuperación de una versión anterior.
+- [ ] **Verificación:** desde un teléfono real la versión publicada conecta con la API, se instala y puede abrir su interfaz sin conexión después de la primera visita.
+
+### PWA Fase 7 — Validación y entrega
+
+- [x] Ejecutar lint, compilación y pruebas del backend si fue modificado; revisar manifest, almacenamiento y service worker en las herramientas del navegador.
+- [ ] Probar en Chrome/Android, Safari/iOS y un navegador de escritorio, documentando diferencias de instalación.
+- [ ] Probar primera visita sin datos, reapertura sin conexión, red lenta, caída de API, token vencido y cambio de usuario.
+- [ ] Verificar compra correcta, stock insuficiente, reintento sin duplicados y actualización de la aplicación instalada.
+- [ ] Revisar accesibilidad: foco, etiquetas, contraste, textos alternativos y avisos de conexión comprensibles.
+- [x] Documentar instalación, límites sin conexión, actualización y resultados; actualizar el mapa y este checklist.
+- [ ] **Verificación:** todos los escenarios anteriores pasan con evidencias y las limitaciones conocidas quedan registradas antes de entregar.
 
 ## Verificación y entrega
 
