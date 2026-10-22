@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 const root = resolve('dist');
+const port = Number(process.argv[2] ?? 4179);
 let version = 0;
 const types = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 createServer(async (req, res) => {
@@ -24,4 +25,4 @@ createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': types[extname(file)] ?? 'application/octet-stream', 'Cache-Control': 'no-store' });
     res.end(data);
   } catch { res.writeHead(500); res.end(); }
-}).listen(4178, 'localhost');
+}).listen(port, 'localhost');

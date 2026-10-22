@@ -79,12 +79,24 @@ func ConectarBaseDeDatos(ctx context.Context) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("no se pudo crear el pool de conexiones: %w", err)
 	}
 
-	ctxPing, cancelar := context.WithTimeout(ctx, 5*time.Second)
-	defer cancelar()
-	if err := pool.Ping(ctxPing); err != nil {
-		pool.Close()
-		return nil, fmt.Errorf("PostgreSQL no respondió: %w", err)
+	var ultimoError error
+	for intento := 1; intento <= 5; intento++ {
+		ctxPing, cancelar := context.WithTimeout(ctx, 5*time.Second)
+		ultimoError = pool.Ping(ctxPing)
+		cancelar()
+		if ultimoError == nil {
+			return pool, nil
+		}
+		if intento < 5 {
+			select {
+			case <-ctx.Done():
+				pool.Close()
+				return nil, ctx.Err()
+			case <-time.After(2 * time.Second):
+			}
+		}
 	}
 
-	return pool, nil
+	pool.Close()
+	return nil, fmt.Errorf("PostgreSQL no respondió después de varios intentos: %w", ultimoError)
 }

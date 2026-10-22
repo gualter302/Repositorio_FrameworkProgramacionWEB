@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getMisComisiones, type Comision } from '../services/api';
+import { BadgeDollarSign } from 'lucide-react';
+import { EmptyState, PageHeader, StatusBadge } from './Ui';
 
 const Comisiones = () => {
   const [comisiones, setComisiones] = useState<Comision[]>([]);
@@ -10,6 +12,11 @@ const Comisiones = () => {
     return () => { activo = false; };
   }, []);
   const total = useMemo(() => comisiones.reduce((suma, item) => suma + item.monto, 0), [comisiones]);
-  return <div className="space-y-5"><div><h1 className="text-2xl font-bold text-slate-800">Mis comisiones</h1><p className="text-slate-500 mt-1">Consulta el origen y estado de cada comisión.</p></div>{error && <div className="bg-red-50 text-red-700 p-3 rounded-lg">{error}</div>}<div className="bg-white border rounded-lg p-5"><p className="text-sm text-slate-500">Total histórico</p><p className="text-3xl font-bold text-green-600">${total.toFixed(2)}</p></div><div className="bg-white border rounded-lg overflow-x-auto"><table className="w-full text-left text-sm"><thead className="bg-slate-50"><tr><th className="p-3">Pedido</th><th className="p-3">Nivel</th><th className="p-3">Porcentaje</th><th className="p-3">Monto</th><th className="p-3">Estado</th></tr></thead><tbody>{comisiones.map((item) => <tr key={item.id} className="border-t"><td className="p-3">{item.numeroPedido}</td><td className="p-3">{item.nivel}</td><td className="p-3">{(item.porcentaje * 100).toFixed(0)}%</td><td className="p-3 font-semibold">${item.monto.toFixed(2)}</td><td className="p-3">{item.estado}</td></tr>)}</tbody></table></div></div>;
+  return <div className="page page-stack">
+    <PageHeader kicker="Rendimiento" title="Mis comisiones" description="Consulta cuánto generó cada pedido, su nivel dentro de la red y el estado del pago." />
+    {error && <div className="alert-error" role="alert">{error}</div>}
+    <div className="metric-card glass-panel--accent max-w-xl"><BadgeDollarSign className="mb-5 text-emerald-300" size={22} /><p className="metric-label">Total histórico</p><p className="metric-value text-emerald-300">${total.toFixed(2)}</p></div>
+    {!error && comisiones.length === 0 ? <EmptyState icon={BadgeDollarSign} title="Aún no hay comisiones" description="Las comisiones generadas por las compras de tu red aparecerán aquí." /> : <div className="data-shell"><table className="data-table"><thead><tr><th>Pedido</th><th>Nivel</th><th>Porcentaje</th><th>Monto</th><th>Estado</th></tr></thead><tbody>{comisiones.map((item) => <tr key={item.id}><td className="mono text-slate-300">{item.numeroPedido}</td><td>{item.nivel}</td><td>{(item.porcentaje * 100).toFixed(0)}%</td><td className="mono text-emerald-300">${item.monto.toFixed(2)}</td><td><StatusBadge>{item.estado}</StatusBadge></td></tr>)}</tbody></table></div>}
+  </div>;
 };
 export default Comisiones;

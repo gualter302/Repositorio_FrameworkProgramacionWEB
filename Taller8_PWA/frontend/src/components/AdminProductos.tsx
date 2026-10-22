@@ -6,6 +6,8 @@ import {
   getProductosAdmin,
 } from '../services/api';
 import type { Producto } from '../context/CartContext';
+import { Edit3, PackagePlus, Power } from 'lucide-react';
+import { EmptyState, PageHeader, StatusBadge } from './Ui';
 
 type DatosProducto = Omit<Producto, 'id' | 'activo'>;
 
@@ -106,61 +108,57 @@ const AdminProductos = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Administrar productos</h1>
-        <p className="text-slate-500 mt-1">Crea, edita o desactiva productos del catálogo.</p>
-      </div>
+    <div className="page page-stack">
+      <PageHeader kicker="Administración" title="Productos" description="Crea, edita o retira artículos del catálogo público." />
 
-      {mensaje && <div className="bg-green-50 text-green-700 p-3 rounded-lg">{mensaje}</div>}
-      {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg">{error}</div>}
+      {mensaje && <div className="alert-success">{mensaje}</div>}
+      {error && <div className="alert-error" role="alert">{error}</div>}
 
-      <form onSubmit={guardar} className="bg-white border border-slate-200 rounded-lg p-5 grid gap-4 md:grid-cols-2">
-        <h2 className="font-semibold text-slate-800 md:col-span-2">
+      <form onSubmit={guardar} className="glass-panel grid gap-4 md:grid-cols-2">
+        <h2 className="section-title md:col-span-2">
           {editando === null ? 'Nuevo producto' : `Editando producto #${editando}`}
         </h2>
-        <input required value={formulario.nombre} onChange={(e) => cambiar('nombre', e.target.value)} placeholder="Nombre" className="border rounded-lg p-3" />
-        <input required type="number" min="0" step="0.01" value={formulario.precio} onChange={(e) => cambiar('precio', Number(e.target.value))} placeholder="Precio" className="border rounded-lg p-3" />
-        <input value={formulario.categoria} onChange={(e) => cambiar('categoria', e.target.value)} placeholder="Categoría" className="border rounded-lg p-3" />
-        <input required type="number" min="0" value={formulario.stock} onChange={(e) => cambiar('stock', Number(e.target.value))} placeholder="Stock" className="border rounded-lg p-3" />
-        <input value={formulario.img} onChange={(e) => cambiar('img', e.target.value)} placeholder="URL de imagen principal" className="border rounded-lg p-3 md:col-span-2" />
-        <textarea value={formulario.descripcion} onChange={(e) => cambiar('descripcion', e.target.value)} placeholder="Descripción" className="border rounded-lg p-3 md:col-span-2" rows={3} />
-        <div className="flex gap-3 md:col-span-2">
-          <button type="submit" className="bg-indigo-600 text-white px-5 py-2 rounded-lg hover:bg-indigo-700">
+        <label><span className="field-label">Nombre</span><input required value={formulario.nombre} onChange={(e) => cambiar('nombre', e.target.value)} className="form-input" /></label>
+        <label><span className="field-label">Precio</span><input required type="number" min="0" step="0.01" value={formulario.precio} onChange={(e) => cambiar('precio', Number(e.target.value))} className="form-input" /></label>
+        <label><span className="field-label">Categoría</span><input value={formulario.categoria} onChange={(e) => cambiar('categoria', e.target.value)} className="form-input" /></label>
+        <label><span className="field-label">Stock</span><input required type="number" min="0" value={formulario.stock} onChange={(e) => cambiar('stock', Number(e.target.value))} className="form-input" /></label>
+        <label className="md:col-span-2"><span className="field-label">URL de imagen principal</span><input type="url" value={formulario.img} onChange={(e) => cambiar('img', e.target.value)} placeholder="https://..." className="form-input" /></label>
+        <label className="md:col-span-2"><span className="field-label">Descripción</span><textarea value={formulario.descripcion} onChange={(e) => cambiar('descripcion', e.target.value)} className="form-input" rows={3} /></label>
+        <div className="flex flex-wrap gap-3 md:col-span-2">
+          <button type="submit" className="btn-primary"><PackagePlus size={17} />
             {editando === null ? 'Crear producto' : 'Guardar cambios'}
           </button>
           {editando !== null && (
-            <button type="button" onClick={() => { setEditando(null); setFormulario(inicial); }} className="border px-5 py-2 rounded-lg">
+            <button type="button" onClick={() => { setEditando(null); setFormulario(inicial); }} className="btn-secondary">
               Cancelar
             </button>
           )}
         </div>
       </form>
 
-      <div className="bg-white border border-slate-200 rounded-lg overflow-x-auto">
-        {cargando ? <p className="p-5 text-slate-500">Cargando productos...</p> : (
-          <table className="w-full text-sm">
-            <thead className="bg-slate-100 text-left">
-              <tr><th className="p-3">Producto</th><th className="p-3">Categoría</th><th className="p-3">Precio</th><th className="p-3">Stock</th><th className="p-3">Estado</th><th className="p-3">Acciones</th></tr>
+      {cargando ? <div className="glass-panel animate-pulse text-slate-500">Cargando productos...</div> : productos.length === 0 ? <EmptyState icon={PackagePlus} title="No hay productos" description="Usa el formulario para registrar el primer artículo del catálogo." /> : <div className="data-shell">
+          <table className="data-table">
+            <thead>
+              <tr><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Acciones</th></tr>
             </thead>
             <tbody>
               {productos.map((producto) => (
-                <tr key={producto.id} className="border-t">
-                  <td className="p-3 font-medium">{producto.nombre}</td>
-                  <td className="p-3">{producto.categoria || 'Sin categoría'}</td>
-                  <td className="p-3">${producto.precio.toFixed(2)}</td>
-                  <td className="p-3">{producto.stock}</td>
-                  <td className="p-3">{producto.activo ? 'Activo' : 'Inactivo'}</td>
-                  <td className="p-3 flex gap-2">
-                    <button onClick={() => editar(producto)} className="text-indigo-600 hover:underline">Editar</button>
-                    {producto.activo && <button onClick={() => void desactivar(producto)} className="text-red-600 hover:underline">Desactivar</button>}
+                <tr key={producto.id}>
+                  <td className="font-medium text-white">{producto.nombre}</td>
+                  <td>{producto.categoria || 'Sin categoría'}</td>
+                  <td className="mono text-cyan-300">${producto.precio.toFixed(2)}</td>
+                  <td>{producto.stock}</td>
+                  <td><StatusBadge>{producto.activo ? 'Activo' : 'Inactivo'}</StatusBadge></td>
+                  <td><div className="flex gap-2">
+                    <button onClick={() => editar(producto)} className="btn-secondary min-h-9 px-3 py-1.5 text-xs"><Edit3 size={14} />Editar</button>
+                    {producto.activo && <button onClick={() => void desactivar(producto)} className="btn-danger min-h-9 px-3 py-1.5 text-xs"><Power size={14} />Desactivar</button>}
+                  </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+      </div>}
     </div>
   );
 };

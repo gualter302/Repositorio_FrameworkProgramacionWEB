@@ -1,14 +1,31 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LogIn, LogOut, Menu, ShoppingCart, UserRound } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { useSidebar } from "../context/SidebarContext";
-import { MenuIcon } from "../icons";
+
+const routeTitles: Record<string, string> = {
+  '/': 'Vista general',
+  '/catalogo': 'Catálogo',
+  '/carrito': 'Carrito',
+  '/checkout': 'Finalizar compra',
+  '/confirmacion': 'Confirmación',
+  '/pedidos': 'Mis pedidos',
+  '/comisiones': 'Mis comisiones',
+  '/mi-red': 'Mi red',
+  '/admin/productos': 'Gestión de productos',
+  '/admin/pedidos': 'Gestión de pedidos',
+  '/admin/comisiones': 'Libro de comisiones',
+  '/admin/reportes': 'Reportes',
+};
 
 const Navbar = () => {
   const { totalItems } = useCart();
-  const { logout, userEmail } = useAuth();
+  const { isAuthenticated, logout, userEmail, userName, role } = useAuth();
   const { toggleSidebar } = useSidebar(); // estado global del sidebar
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const initials = (userName || userEmail || 'Usuario').split(/\s|@/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
   const handleLogout = () => {
     logout();
@@ -16,64 +33,41 @@ const Navbar = () => {
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8">
+    <header className="relative z-20 flex min-h-18 items-center justify-between border-b border-cyan-200/10 bg-slate-950/55 px-3 backdrop-blur-xl sm:px-5 md:px-8">
       <div className="flex items-center gap-2 md:gap-4 min-w-0">
         {/* Botón Toggle: colapsa / expande el Sidebar */}
         <button
           onClick={toggleSidebar}
           aria-label="Alternar menú lateral"
           title="Alternar menú lateral"
-          className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition"
+          className="icon-button"
         >
-          <MenuIcon className="w-6 h-6" />
+          <Menu size={22} aria-hidden="true" />
         </button>
-        <h2 className="text-slate-600 font-medium text-base md:text-lg truncate">
-          Panel de Administración
-        </h2>
-      </div>
-      <div className="flex items-end gap-3 md:gap-6">
-        <Link
-          to="/carrito"
-          className="relative p-2 hover:bg-slate-100 rounded-full transition"
-        >
-          <span className="text-xl">🛒</span>
-          {totalItems > 0 && (
-            <span className="absolute top-0 right-0 bg-indigo-600 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full transform translate-x-1 -translate-y-1">
-              {totalItems}
-            </span>
-          )}
-        </Link>
-
-        <div className="flex items-center gap-4">
-          <span className="hidden sm:inline text-sm text-slate-500">{userEmail}</span>
-
-          {/* Contenedor relativo con la clase 'group' para detectar el hover */}
-          <div tabIndex={0} className="relative group cursor-pointer pb-2 outline-none">
-            {/* Círculo del usuario / Avatar */}
-            <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden border border-slate-300 flex items-center justify-center">
-              {/*
-        NOTA PARA LA API:
-        Aquí reemplazarás el 'src' quemado por la variable de tu estado,
-        por ejemplo: src={userAvatar || defaultImage}
-      */}
-              <img
-                src="https://fastly.picsum.photos/id/64/4326/2884.jpg?hmac=9_SzX666YRpR_fOyYStXpfSiJ_edO3ghlSRnH2w09Kg"
-                alt="Avatar del usuario"
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            {/* Menú desplegable */}
-            <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-slate-200 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50">
-              <button
-                onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 font-semibold hover:bg-red-50 rounded-md transition-colors"
-              >
-                Cerrar Sesión
-              </button>
-            </div>
-          </div>
+        <div className="min-w-0">
+          <p className="hidden text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-cyan-300/70 sm:block">MultiCatálogo</p>
+          <h2 className="truncate text-sm font-semibold text-slate-100 sm:text-base">{routeTitles[pathname] ?? 'Panel'}</h2>
         </div>
+      </div>
+      <div className="flex items-center gap-2 sm:gap-3">
+        {isAuthenticated && <Link to="/carrito" className="icon-button relative" aria-label={`Carrito con ${totalItems} productos`} title="Carrito">
+          <ShoppingCart size={21} aria-hidden="true" />
+          {totalItems > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-cyan-300 px-1 text-[0.65rem] font-bold text-slate-950">{totalItems}</span>}
+        </Link>}
+
+        {isAuthenticated ? <details className="group relative">
+          <summary className="flex list-none items-center gap-2 rounded-2xl border border-cyan-200/15 bg-white/5 p-1.5 pr-2.5 text-left transition hover:border-cyan-300/40 hover:bg-cyan-300/10 [&::-webkit-details-marker]:hidden">
+            <span className="grid h-8 w-8 place-items-center rounded-xl bg-cyan-300/10 text-xs font-bold text-cyan-200">{initials}</span>
+            <span className="hidden max-w-40 sm:block">
+              <span className="block truncate text-xs font-semibold text-slate-100">{userName || userEmail}</span>
+              <span className="block text-[0.65rem] uppercase tracking-wider text-slate-500">{role}</span>
+            </span>
+          </summary>
+          <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-2xl border border-cyan-200/15 bg-slate-950/95 p-2 shadow-2xl backdrop-blur-xl">
+            <div className="flex items-center gap-3 border-b border-white/10 px-3 py-3 sm:hidden"><UserRound size={18} /><span className="min-w-0 truncate text-sm">{userEmail}</span></div>
+            <button onClick={handleLogout} className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold text-rose-300 transition hover:bg-rose-500/10"><LogOut size={17} />Cerrar sesión</button>
+          </div>
+        </details> : <Link to="/login" className="btn-secondary"><LogIn size={17} /> <span className="hidden sm:inline">Iniciar sesión</span></Link>}
       </div>
     </header>
   );

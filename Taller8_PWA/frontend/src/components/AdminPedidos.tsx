@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { actualizarEstadoPedido, cancelarPedido, getPedidosAdmin, type PedidoResumen } from '../services/api';
+import { ChevronLeft, ChevronRight, ClipboardList, Search, XCircle } from 'lucide-react';
+import { EmptyState, PageHeader, StatusBadge } from './Ui';
 
 const estados = ['procesando', 'preparando', 'enviado', 'entregado'];
 
@@ -47,27 +49,28 @@ const AdminPedidos = () => {
 
   const paginas = Math.max(1, Math.ceil(total / 10));
   return (
-    <div className="space-y-5">
-      <div><h1 className="text-2xl font-bold text-slate-800">Administrar pedidos</h1><p className="text-slate-500 mt-1">Gestiona estados, búsqueda y cancelaciones.</p></div>
-      <input value={buscar} onChange={(e) => { setBuscar(e.target.value); setPagina(1); }} placeholder="Buscar por número, correo o estado" className="w-full max-w-lg border rounded-lg p-3" />
-      {error && <div className="bg-red-50 text-red-700 p-3 rounded-lg">{error}</div>}
+    <div className="page page-stack">
+      <PageHeader kicker="Administración" title="Pedidos" description="Busca compras, actualiza su avance y gestiona cancelaciones." />
+      <label className="relative block max-w-xl"><span className="sr-only">Buscar pedidos</span><Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} /><input value={buscar} onChange={(e) => { setBuscar(e.target.value); setPagina(1); }} placeholder="Buscar por número, correo o estado" className="form-input form-input--with-icon" /></label>
+      {error && <div className="alert-error" role="alert">{error}</div>}
+      {!error && pedidos.length === 0 && <EmptyState icon={ClipboardList} title="No se encontraron pedidos" description={buscar ? 'Prueba con otro número, correo o estado.' : 'Las compras registradas aparecerán aquí.'} />}
       <div className="space-y-3">
         {pedidos.map((pedido) => (
-          <article key={pedido.id} className="bg-white border rounded-lg p-4">
+          <article key={pedido.id} className="glass-panel">
             <div className="flex flex-wrap justify-between gap-3">
-              <div><h2 className="font-bold">{pedido.numero} · {pedido.usuarioEmail}</h2><p className="text-sm text-slate-500">{new Date(pedido.fecha).toLocaleString('es-EC')} · ${pedido.total.toFixed(2)}</p></div>
-              <div className="flex items-center gap-2">
-                <select disabled={actualizando === pedido.id || pedido.estado === 'cancelado' || pedido.estado === 'entregado'} value={pedido.estado} onChange={(e) => void cambiarEstado(pedido.id, e.target.value)} className="border rounded p-2 text-sm">
+              <div><div className="flex flex-wrap items-center gap-2"><h2 className="mono font-semibold text-white">{pedido.numero}</h2><StatusBadge>{pedido.estado}</StatusBadge></div><p className="mt-2 text-sm text-slate-400">{pedido.usuarioEmail}</p><p className="mt-1 text-xs text-slate-500">{new Date(pedido.fecha).toLocaleString('es-EC')} · <span className="mono text-cyan-300">${pedido.total.toFixed(2)}</span></p></div>
+              <div className="flex flex-wrap items-center gap-2">
+                <select aria-label={`Estado de ${pedido.numero}`} disabled={actualizando === pedido.id || pedido.estado === 'cancelado' || pedido.estado === 'entregado'} value={pedido.estado} onChange={(e) => void cambiarEstado(pedido.id, e.target.value)} className="form-input min-h-10 w-auto py-2 text-sm">
                   <option value={pedido.estado}>{pedido.estado}</option>
                   {estados.filter((estado) => estado !== pedido.estado).map((estado) => <option key={estado} value={estado}>{estado}</option>)}
                 </select>
-                {pedido.estado !== 'cancelado' && pedido.estado !== 'entregado' && <button disabled={actualizando === pedido.id} onClick={() => void cancelar(pedido.id)} className="text-red-600 hover:underline text-sm">Cancelar</button>}
+                {pedido.estado !== 'cancelado' && pedido.estado !== 'entregado' && <button disabled={actualizando === pedido.id} onClick={() => void cancelar(pedido.id)} className="btn-danger"><XCircle size={16} />Cancelar</button>}
               </div>
             </div>
           </article>
         ))}
       </div>
-      <div className="flex items-center gap-3"><button disabled={pagina <= 1} onClick={() => setPagina((actual) => actual - 1)} className="border px-3 py-2 rounded disabled:opacity-50">Anterior</button><span className="text-sm">Página {pagina} de {paginas}</span><button disabled={pagina >= paginas} onClick={() => setPagina((actual) => actual + 1)} className="border px-3 py-2 rounded disabled:opacity-50">Siguiente</button></div>
+      <div className="flex items-center justify-center gap-3"><button disabled={pagina <= 1} onClick={() => setPagina((actual) => actual - 1)} className="btn-secondary"><ChevronLeft size={17} />Anterior</button><span className="mono text-xs text-slate-400">{pagina} / {paginas}</span><button disabled={pagina >= paginas} onClick={() => setPagina((actual) => actual + 1)} className="btn-secondary">Siguiente<ChevronRight size={17} /></button></div>
     </div>
   );
 };

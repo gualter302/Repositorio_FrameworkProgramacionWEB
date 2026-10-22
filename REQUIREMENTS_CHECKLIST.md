@@ -2,9 +2,9 @@
 
 ## Estado general
 
-- **Hito actual:** Taller 8 PWA implementado y probado localmente; publicación y validación móvil pendientes.
-- **Última tarea completada:** PWA, catálogo offline, carrito por usuario y checkout idempotente con pruebas locales.
-- **Siguiente tarea pendiente:** definir dominio/alojamiento y probar instalación HTTPS en Android/iOS.
+- **Hito actual:** Taller 8 PWA implementado, probado y preparado para publicarse en Render.
+- **Última tarea completada:** imagen de producción, migraciones automáticas y Blueprint de Render comprobados localmente.
+- **Siguiente tarea pendiente:** fusionar el PR, crear el Blueprint en Render y probar la instalación HTTPS en Android/iOS.
 - **Base recomendada:** `Taller8_PWA/`.
 - **Fuentes disponibles:** guía práctica, planificación, análisis funcional y README de cada taller.
 - **Fuentes faltantes:** `Planificacion_Unidad1_Tema5.md` y `Silabo_Framework_Programacion_Web.md`.
@@ -66,8 +66,8 @@
 - [ ] Calcular comisiones de 10 %, 5 % y 2 % según el nivel.
 - [x] Mostrar el árbol de referidos y sus totales en `/mi-red`.
 - [x] Calcular ventas, referidos y comisiones en el Dashboard.
-- [ ] Adaptar Sidebar y Navbar al rol autenticado.
-- [ ] Mantener la interfaz adaptable y accesible en computadora y celular.
+- [x] Adaptar Sidebar y Navbar al rol autenticado.
+- [x] Mantener la interfaz adaptable y accesible en computadora y celular.
 
 ## Unidad 2 Fase 2 Persistencia con PostgreSQL
 

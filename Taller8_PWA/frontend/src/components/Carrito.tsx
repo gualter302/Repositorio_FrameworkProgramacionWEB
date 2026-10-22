@@ -1,63 +1,65 @@
 // src/components/Carrito.tsx
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
+import { ArrowRight, ShoppingBag, Trash2 } from 'lucide-react';
+import { EmptyState, PageHeader } from './Ui';
 
 const Carrito = () => {
   const { cart, removeFromCart, totalPrice } = useCart();
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-6">Tu Carrito de Compras</h1>
+    <div className="page page-stack">
+      <PageHeader kicker="Selección" title="Tu carrito" description="Revisa los productos elegidos antes de continuar con los datos de envío." />
 
       {cart.length === 0 ? (
-        <div className="bg-white p-8 rounded-lg border border-slate-200 shadow-sm text-center">
-          <p className="text-slate-500">Tu carrito está vacío actualmente.</p>
-        </div>
+        <EmptyState icon={ShoppingBag} title="Tu carrito está vacío" description="Tu carrito está vacío actualmente. Explora el catálogo y añade los productos que quieras comprar." action={<Link to="/catalogo" className="btn-primary">Ir al catálogo <ArrowRight size={17} /></Link>} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Lista de productos */}
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => (
-              <div key={item.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+              <article key={item.id} className="glass-panel flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-4">
-                  <img src={item.img} alt={item.nombre} className="w-16 h-16 object-cover rounded-md" />
-                  <div>
-                    <h3 className="font-semibold text-slate-800">{item.nombre}</h3>
-                    <p className="text-sm text-slate-500">Cantidad: {item.cantidad}</p>
+                  <img src={item.img || '/placeholder.svg'} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = '/placeholder.svg'; }} alt={item.nombre} className="h-18 w-18 rounded-xl border border-white/10 object-cover" />
+                  <div className="min-w-0">
+                    <h2 className="truncate font-semibold text-white">{item.nombre}</h2>
+                    <p className="mt-1 text-sm text-slate-400">Cantidad: {item.cantidad}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-6">
-                  <p className="font-bold text-indigo-600">${(item.precio * item.cantidad).toFixed(2)}</p>
+                  <p className="mono font-medium text-cyan-300">${(item.precio * item.cantidad).toFixed(2)}</p>
                   <button
                     onClick={() => removeFromCart(item.id)}
-                    className="text-red-500 hover:text-red-700 transition"
+                    className="icon-button text-rose-300 hover:border-rose-300/30 hover:bg-rose-500/10 hover:text-rose-200"
                     title="Eliminar producto"
+                    aria-label={`Eliminar ${item.nombre}`}
                   >
-                    🗑️
+                    <Trash2 size={18} aria-hidden="true" />
                   </button>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
 
           {/* Resumen de pago */}
-          <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm h-fit">
-            <h2 className="text-lg font-bold text-slate-800 mb-4">Resumen del Pedido</h2>
-            <div className="flex justify-between border-b border-slate-100 pb-4 mb-4">
-              <span className="text-slate-600">Subtotal</span>
-              <span className="font-semibold">${totalPrice.toFixed(2)}</span>
+          <aside className="glass-panel glass-panel--accent h-fit lg:sticky lg:top-4">
+            <p className="page-kicker">Pedido</p>
+            <h2 className="section-title mb-5">Resumen</h2>
+            <div className="mb-4 flex justify-between border-b border-cyan-200/10 pb-4">
+              <span className="text-slate-400">Subtotal</span>
+              <span className="mono font-semibold text-slate-200">${totalPrice.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center mb-6">
-              <span className="text-slate-800 font-bold">Total a Pagar</span>
-              <span className="text-2xl font-bold text-indigo-600">${totalPrice.toFixed(2)}</span>
+              <span className="font-bold text-white">Total a pagar</span>
+              <span className="mono text-2xl text-cyan-300">${totalPrice.toFixed(2)}</span>
             </div>
             <Link
               to="/checkout"
-              className="block w-full bg-indigo-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
+              className="btn-primary w-full"
             >
-              Proceder al Pago
+              Continuar <ArrowRight size={17} />
             </Link>
-          </div>
+          </aside>
         </div>
       )}
     </div>

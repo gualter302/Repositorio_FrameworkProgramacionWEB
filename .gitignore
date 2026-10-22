@@ -3,6 +3,7 @@ node_modules/
 dist/
 coverage/
 *.log
+.vite/
 
 # Configuración local y secretos
 .env
@@ -20,3 +21,4 @@ coverage/
 
 # Datos locales de Docker
 Taller7_Registro_Referidos/backend/.docker-data/
+Taller8_PWA/backend/.docker-data/
