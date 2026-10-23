@@ -7,7 +7,7 @@ import {
 } from '../services/api';
 import type { Producto } from '../context/CartContext';
 import { Edit3, PackagePlus, Power } from 'lucide-react';
-import { EmptyState, PageHeader, StatusBadge } from './Ui';
+import { ConfirmDialog, EmptyState, PageHeader, StatusBadge } from './Ui';
 
 type DatosProducto = Omit<Producto, 'id' | 'activo'>;
 
@@ -28,6 +28,8 @@ const AdminProductos = () => {
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(true);
+  const [productoADesactivar, setProductoADesactivar] = useState<Producto | null>(null);
+  const [desactivando, setDesactivando] = useState(false);
 
   const cargar = async () => {
     setError('');
@@ -95,15 +97,19 @@ const AdminProductos = () => {
     setMensaje('');
   };
 
-  const desactivar = async (producto: Producto) => {
-    if (!window.confirm(`¿Desactivar "${producto.nombre}"?`)) return;
+  const desactivar = async () => {
+    if (!productoADesactivar) return;
     setError('');
+    setDesactivando(true);
     try {
-      await desactivarProducto(producto.id);
+      await desactivarProducto(productoADesactivar.id);
       setMensaje('Producto desactivado correctamente.');
       await cargar();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo desactivar el producto');
+    } finally {
+      setDesactivando(false);
+      setProductoADesactivar(null);
     }
   };
 
@@ -151,7 +157,7 @@ const AdminProductos = () => {
                   <td><StatusBadge>{producto.activo ? 'Activo' : 'Inactivo'}</StatusBadge></td>
                   <td><div className="flex gap-2">
                     <button onClick={() => editar(producto)} className="btn-secondary min-h-9 px-3 py-1.5 text-xs"><Edit3 size={14} />Editar</button>
-                    {producto.activo && <button onClick={() => void desactivar(producto)} className="btn-danger min-h-9 px-3 py-1.5 text-xs"><Power size={14} />Desactivar</button>}
+                    {producto.activo && <button onClick={() => setProductoADesactivar(producto)} className="btn-danger min-h-9 px-3 py-1.5 text-xs"><Power size={14} />Desactivar</button>}
                   </div>
                   </td>
                 </tr>
@@ -159,6 +165,15 @@ const AdminProductos = () => {
             </tbody>
           </table>
       </div>}
+      <ConfirmDialog
+        open={productoADesactivar !== null}
+        title={`Desactivar ${productoADesactivar?.nombre ?? 'producto'}`}
+        description="El producto dejará de aparecer en el catálogo público, pero conservará su información y el historial de pedidos."
+        confirmLabel="Sí, desactivar"
+        onConfirm={() => void desactivar()}
+        onCancel={() => setProductoADesactivar(null)}
+        busy={desactivando}
+      />
     </div>
   );
 };

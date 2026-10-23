@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
-import { Boxes, Database, Orbit, ShieldCheck, Wifi, type LucideIcon } from 'lucide-react';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { Boxes, Database, Orbit, ShieldCheck, TriangleAlert, Wifi, X, type LucideIcon } from 'lucide-react';
 
 type IconType = LucideIcon;
 
@@ -54,6 +55,69 @@ const toneForStatus = (status: string) => {
 export const StatusBadge = ({ children }: { children: string }) => (
   <span className="status-pill" data-tone={toneForStatus(children)}>{children}</span>
 );
+
+interface ConfirmDialogProps {
+  open: boolean;
+  title: string;
+  description: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  busy?: boolean;
+}
+
+export const ConfirmDialog = ({
+  open,
+  title,
+  description,
+  confirmLabel,
+  onConfirm,
+  onCancel,
+  busy = false,
+}: ConfirmDialogProps) => {
+  const cancelButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    cancelButton.current?.focus();
+    const cerrarConEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !busy) onCancel();
+    };
+    document.addEventListener('keydown', cerrarConEscape);
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+      document.removeEventListener('keydown', cerrarConEscape);
+    };
+  }, [busy, onCancel, open]);
+
+  if (!open) return null;
+
+  return createPortal(
+    <div className="modal-backdrop" onMouseDown={() => { if (!busy) onCancel(); }}>
+      <section
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-description"
+        className="confirm-dialog"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button type="button" className="icon-button modal-close" onClick={onCancel} disabled={busy} aria-label="Cerrar confirmación"><X size={18} /></button>
+        <span className="confirm-dialog__icon"><TriangleAlert size={26} aria-hidden="true" /></span>
+        <p className="page-kicker">Confirmación</p>
+        <h2 id="confirm-dialog-title" className="confirm-dialog__title">{title}</h2>
+        <p id="confirm-dialog-description" className="confirm-dialog__description">{description}</p>
+        <div className="confirm-dialog__actions">
+          <button ref={cancelButton} type="button" className="btn-secondary" onClick={onCancel} disabled={busy}>Volver</button>
+          <button type="button" className="btn-danger" onClick={onConfirm} disabled={busy}>{busy ? 'Procesando...' : confirmLabel}</button>
+        </div>
+      </section>
+    </div>,
+    document.body,
+  );
+};
 
 interface AuthShellProps {
   kicker: string;

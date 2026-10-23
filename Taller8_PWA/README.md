@@ -3,7 +3,7 @@
 Base acumulativa del Taller 7: registro, catálogo, pedidos, comisiones y administración.
 Agrega instalación, interfaz sin conexión, catálogo público guardado durante 24 horas,
 carrito local por usuario y checkout con reintentos sin duplicar pedidos. El catálogo incluye
-20 productos propios con ilustraciones locales que también forman parte de la instalación.
+20 productos propios con fotografías locales que también forman parte de la instalación.
 
 ## Levantar el sistema
 
@@ -42,11 +42,15 @@ automáticamente el correo y la contraseña antes de ingresar.
 
 ## Datos de demostración
 
-La migración `009_datos_demostracion.sql` prepara cinco compras del cliente de prueba en
-distintos estados, sus diez detalles, las comisiones de tres niveles y tres liquidaciones.
-Esto permite revisar desde el primer inicio Mis pedidos, administración de pedidos,
-comisiones, red y reportes sin registrar compras manualmente. El seeder guarda su propia
-versión y no duplica la información si vuelve a ejecutarse.
+Las migraciones `009_datos_demostracion.sql` y `011_escenarios_demostracion.sql` preparan
+pedidos en distintos estados, detalles, una red pequeña, comisiones pagadas y pendientes,
+y liquidaciones. El administrador tiene compras propias y acceso a la información general;
+el cliente tiene pedidos, referidos y comisiones para recorrer sus pantallas desde el primer
+inicio. Cada seeder guarda su propia versión y no duplica la información al reiniciar.
+
+Las acciones de cancelar un pedido o desactivar un producto muestran un cuadro de confirmación
+con el diseño de la aplicación. Se puede volver sin aplicar el cambio, cerrar con `Escape` o
+confirmar la acción desde el botón principal del cuadro.
 
 Las fotografías del catálogo se guardan en `frontend/public/products/images/`. Son archivos
 WebP locales y optimizados, por lo que no dependen de páginas externas y también quedan

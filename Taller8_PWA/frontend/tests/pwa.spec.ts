@@ -36,6 +36,48 @@ test('los reportes cortos aprovechan el espacio sin mostrar desplazamiento horiz
   }
 });
 
+test('confirma acciones administrativas con un modal integrado al diseño', async ({ page }) => {
+  let productoDesactivado = false;
+  await page.route('**/api/admin/productos**', route => {
+    if (route.request().method() === 'DELETE') {
+      productoDesactivado = true;
+      return route.fulfill({ status: 200, json: null });
+    }
+    return route.fulfill({ json: [{
+      id: 101,
+      nombre: 'Auriculares Orbit',
+      descripcion: 'Producto de prueba',
+      categoria: 'Tecnología',
+      precio: 39.90,
+      img: '/products/images/auriculares-orbit.webp',
+      galeria: [],
+      stock: 10,
+      activo: true,
+    }] });
+  });
+  await page.goto('/login');
+  await page.evaluate(() => {
+    const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }));
+    localStorage.setItem('multicatalogo_sesion', JSON.stringify({ email: 'admin@upse.edu.ec', token: `a.${payload}.c`, rol: 'admin' }));
+  });
+  await page.goto('/admin/productos');
+
+  await page.getByRole('button', { name: 'Desactivar' }).click();
+  const modal = page.getByRole('alertdialog');
+  await expect(modal).toBeVisible();
+  await expect(modal.getByRole('heading', { name: 'Desactivar Auriculares Orbit' })).toBeVisible();
+  await expect(modal.getByText('dejará de aparecer en el catálogo público', { exact: false })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(modal).toBeHidden();
+  expect(productoDesactivado).toBe(false);
+
+  await page.getByRole('button', { name: 'Desactivar' }).click();
+  await modal.getByRole('button', { name: 'Sí, desactivar' }).click();
+  await expect.poll(() => productoDesactivado).toBe(true);
+  await expect(page.getByText('Producto desactivado correctamente.')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
 test('instala service worker, conserva carrito y catálogo offline sin cachear datos privados', async ({ page, context }) => {
   await page.route('**/api/**', async route => {
     const path = new URL(route.request().url()).pathname;
