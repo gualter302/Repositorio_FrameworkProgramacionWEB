@@ -14,7 +14,6 @@ interface AuthContextType {
   userEmail: string | null;
   userName: string | null;
   role: string | null;
-  token: string | null;
   login: (session: Session) => void;
   logout: () => void;
 }
@@ -61,7 +60,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       userEmail: session?.email ?? null,
       userName: session?.nombre ?? null,
       role: session?.rol ?? null,
-      token: session?.token ?? null,
       login,
       logout,
     }}>

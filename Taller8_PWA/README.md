@@ -3,7 +3,7 @@
 Base acumulativa del Taller 7: registro, catálogo, pedidos, comisiones y administración.
 Agrega instalación, interfaz sin conexión, catálogo público guardado durante 24 horas,
 carrito local por usuario y checkout con reintentos sin duplicar pedidos. El catálogo incluye
-20 productos propios con ilustraciones locales que también forman parte de la instalación.
+20 productos propios con fotografías locales que también forman parte de la instalación.
 
 ## Levantar el sistema
 
@@ -42,11 +42,15 @@ automáticamente el correo y la contraseña antes de ingresar.
 
 ## Datos de demostración
 
-La migración `009_datos_demostracion.sql` prepara cinco compras del cliente de prueba en
-distintos estados, sus diez detalles, las comisiones de tres niveles y tres liquidaciones.
-Esto permite revisar desde el primer inicio Mis pedidos, administración de pedidos,
-comisiones, red y reportes sin registrar compras manualmente. El seeder guarda su propia
-versión y no duplica la información si vuelve a ejecutarse.
+Las migraciones `009_datos_demostracion.sql` y `011_escenarios_demostracion.sql` preparan
+pedidos en distintos estados, detalles, una red pequeña, comisiones pagadas y pendientes,
+y liquidaciones. El administrador tiene compras propias y acceso a la información general;
+el cliente tiene pedidos, referidos y comisiones para recorrer sus pantallas desde el primer
+inicio. Cada seeder guarda su propia versión y no duplica la información al reiniciar.
+
+Las acciones de cancelar un pedido o desactivar un producto muestran un cuadro de confirmación
+con el diseño de la aplicación. Se puede volver sin aplicar el cambio, cerrar con `Escape` o
+confirmar la acción desde el botón principal del cuadro.
 
 Las fotografías del catálogo se guardan en `frontend/public/products/images/`. Son archivos
 WebP locales y optimizados, por lo que no dependen de páginas externas y también quedan
@@ -99,6 +103,7 @@ los datos del sitio al terminar. No se cifra el almacenamiento local.
 
 Antes del primer envío se consulta catálogo actual y se comprueba precio y disponibilidad.
 El servidor vuelve a validar stock bajo bloqueo y calcula el total.
+El catálogo no permite añadir al carrito más unidades que las existencias mostradas.
 Cada intento guarda una clave y el cuerpo original por usuario. Si la conexión se pierde,
 confirmar otra vez recupera esa misma compra; también puede consultarse Mis pedidos.
 El reintento conserva los datos originales aunque se haya editado el formulario.
@@ -176,8 +181,10 @@ volúmenes para actualizar.
 
 Las pruebas de navegador usan API simulada y la compilación real con service worker:
 reapertura sin conexión, carrito persistente, manifest, iconos, cachés sin respuestas privadas,
-cambio de cuenta, sesión vencida y ancho de 375 px. Otra prueba simula dos versiones reales
-del service worker y verifica el aviso, el bloqueo en checkout y la conservación del carrito.
-El script de compra usa PostgreSQL real.
+cambio de cuenta, sesión vencida y ancho de 375 px. También recorren registro, red, pedidos,
+comisiones, catálogo, compra y las funciones administrativas de productos, pedidos,
+liquidaciones y reportes. Otra prueba simula dos versiones reales del service worker y verifica
+el aviso, el bloqueo en checkout y la conservación del carrito. El script de compra usa
+PostgreSQL real y comprueba reintentos sin pedidos ni descuentos de stock duplicados.
 Quedan por verificar actualización entre dos despliegues públicos, instalación física Android/iOS,
 auditoría completa de accesibilidad y condiciones de red lenta/caída en dispositivos.

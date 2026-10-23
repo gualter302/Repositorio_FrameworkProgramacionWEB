@@ -8,7 +8,7 @@ import { getProductos, getProductosGuardados } from '../services/api';
 import { EmptyState, PageHeader } from './Ui';
 
 const Catalogo = () => {
-  const { addToCart } = useCart(); // <-- Usamos la función del contexto
+  const { addToCart, cart } = useCart();
   const { isAuthenticated } = useAuth();
   const [copiaInicial] = useState(getProductosGuardados);
 
@@ -48,7 +48,11 @@ const Catalogo = () => {
       {!loading && !error && productos.length === 0 && <EmptyState icon={PackageSearch} title="No hay productos disponibles" description="El catálogo todavía no tiene productos activos para mostrar." />}
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {productos.map((prod) => (
+        {productos.map((prod) => {
+          const cantidadEnCarrito = cart.find((item) => item.id === prod.id)?.cantidad ?? 0;
+          const stockAgotado = prod.stock <= 0;
+          const stockAgregado = !stockAgotado && cantidadEnCarrito >= prod.stock;
+          return (
           <article key={prod.id} className="group flex flex-col overflow-hidden rounded-2xl border border-cyan-200/15 bg-slate-950/55 shadow-2xl backdrop-blur-xl transition duration-200 hover:-translate-y-1 hover:border-cyan-300/40">
             <div className="relative overflow-hidden">
               <img src={prod.img || '/placeholder.svg'} alt={prod.nombre} onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = '/placeholder.svg'; }} className="h-48 w-full object-cover transition duration-500 group-hover:scale-[1.03]" />
@@ -61,10 +65,11 @@ const Catalogo = () => {
               {prod.descripcion && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-400">{prod.descripcion}</p>}
               <p className="mono mb-5 mt-4 text-xl text-cyan-300">${prod.precio.toFixed(2)}</p>
 
-              {isAuthenticated ? <button onClick={() => addToCart(prod)} disabled={prod.stock <= 0} className="btn-primary mt-auto w-full"><ShoppingCart size={17} />{prod.stock > 0 ? 'Añadir al carrito' : 'Sin existencias'}</button> : <Link to="/login" className="btn-secondary mt-auto w-full"><LogIn size={17} />Inicia sesión para comprar</Link>}
+              {isAuthenticated ? <button onClick={() => addToCart(prod)} disabled={stockAgotado || stockAgregado} className="btn-primary mt-auto w-full"><ShoppingCart size={17} />{stockAgotado ? 'Sin existencias' : stockAgregado ? 'Stock agregado' : 'Añadir al carrito'}</button> : <Link to="/login" className="btn-secondary mt-auto w-full"><LogIn size={17} />Inicia sesión para comprar</Link>}
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

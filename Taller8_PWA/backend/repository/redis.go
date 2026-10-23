@@ -47,10 +47,6 @@ func (r *RedisRepository) GuardarRed(ctx context.Context, emailUsuario string, r
 	r.guardar(ctx, claveRed(emailUsuario), red, tiempoRed)
 }
 
-func (r *RedisRepository) InvalidarRed(ctx context.Context, emailUsuario string) error {
-	return r.cliente.Del(ctx, claveRed(emailUsuario)).Err()
-}
-
 func (r *RedisRepository) InvalidarTodasLasRedes(ctx context.Context) error {
 	iterador := r.cliente.Scan(ctx, 0, "red:tree:*", 100).Iterator()
 	claves := make([]string, 0)

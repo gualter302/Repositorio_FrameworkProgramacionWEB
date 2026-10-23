@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { actualizarEstadoPedido, cancelarPedido, getPedidosAdmin, type PedidoResumen } from '../services/api';
 import { ChevronLeft, ChevronRight, ClipboardList, Search, XCircle } from 'lucide-react';
-import { EmptyState, PageHeader, StatusBadge } from './Ui';
+import { ConfirmDialog, EmptyState, PageHeader, StatusBadge } from './Ui';
 
 const estados = ['procesando', 'preparando', 'enviado', 'entregado'];
+const estadosCancelables = ['pendiente', 'confirmado', 'procesando'];
 
 const AdminPedidos = () => {
   const [pedidos, setPedidos] = useState<PedidoResumen[]>([]);
@@ -12,6 +13,7 @@ const AdminPedidos = () => {
   const [total, setTotal] = useState(0);
   const [error, setError] = useState('');
   const [actualizando, setActualizando] = useState<number | null>(null);
+  const [pedidoACancelar, setPedidoACancelar] = useState<PedidoResumen | null>(null);
 
   const cargar = async (paginaActual: number, termino: string) => {
     setError('');
@@ -39,12 +41,12 @@ const AdminPedidos = () => {
     finally { setActualizando(null); }
   };
 
-  const cancelar = async (id: number) => {
-    if (!window.confirm('¿Cancelar este pedido y devolver su stock?')) return;
-    setActualizando(id);
-    try { await cancelarPedido(id); await cargar(pagina, buscar); }
+  const cancelar = async () => {
+    if (!pedidoACancelar) return;
+    setActualizando(pedidoACancelar.id);
+    try { await cancelarPedido(pedidoACancelar.id); await cargar(pagina, buscar); }
     catch (err) { setError(err instanceof Error ? err.message : 'No se pudo cancelar el pedido'); }
-    finally { setActualizando(null); }
+    finally { setActualizando(null); setPedidoACancelar(null); }
   };
 
   const paginas = Math.max(1, Math.ceil(total / 10));
@@ -64,13 +66,22 @@ const AdminPedidos = () => {
                   <option value={pedido.estado}>{pedido.estado}</option>
                   {estados.filter((estado) => estado !== pedido.estado).map((estado) => <option key={estado} value={estado}>{estado}</option>)}
                 </select>
-                {pedido.estado !== 'cancelado' && pedido.estado !== 'entregado' && <button disabled={actualizando === pedido.id} onClick={() => void cancelar(pedido.id)} className="btn-danger"><XCircle size={16} />Cancelar</button>}
+                {estadosCancelables.includes(pedido.estado) && <button disabled={actualizando === pedido.id} onClick={() => setPedidoACancelar(pedido)} className="btn-danger"><XCircle size={16} />Cancelar</button>}
               </div>
             </div>
           </article>
         ))}
       </div>
       <div className="flex items-center justify-center gap-3"><button disabled={pagina <= 1} onClick={() => setPagina((actual) => actual - 1)} className="btn-secondary"><ChevronLeft size={17} />Anterior</button><span className="mono text-xs text-slate-400">{pagina} / {paginas}</span><button disabled={pagina >= paginas} onClick={() => setPagina((actual) => actual + 1)} className="btn-secondary">Siguiente<ChevronRight size={17} /></button></div>
+      <ConfirmDialog
+        open={pedidoACancelar !== null}
+        title={`Cancelar ${pedidoACancelar?.numero ?? 'pedido'}`}
+        description="El pedido quedará cancelado y sus productos volverán al inventario. Esta acción no se puede deshacer."
+        confirmLabel="Sí, cancelar pedido"
+        onConfirm={() => void cancelar()}
+        onCancel={() => setPedidoACancelar(null)}
+        busy={actualizando === pedidoACancelar?.id}
+      />
     </div>
   );
 };

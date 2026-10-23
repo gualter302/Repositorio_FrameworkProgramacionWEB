@@ -20,6 +20,7 @@ services:
       - ./database/008_catalogo_renovado.sql:/docker-entrypoint-initdb.d/008_catalogo_renovado.sql:ro
       - ./database/009_datos_demostracion.sql:/docker-entrypoint-initdb.d/009_datos_demostracion.sql:ro
       - ./database/010_fotos_productos.sql:/docker-entrypoint-initdb.d/010_fotos_productos.sql:ro
+      - ./database/011_escenarios_demostracion.sql:/docker-entrypoint-initdb.d/011_escenarios_demostracion.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-multicatalogo} -d ${DB_NAME:-multicatalogo}"]
       interval: 5s

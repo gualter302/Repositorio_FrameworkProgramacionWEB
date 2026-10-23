@@ -136,12 +136,6 @@ func (*cacheFalsa) ObtenerRed(context.Context, string) ([]*models.Referido, bool
 	return nil, false
 }
 func (*cacheFalsa) GuardarRed(context.Context, string, []*models.Referido) {}
-func (c *cacheFalsa) InvalidarRed(_ context.Context, email string) error {
-	if c.redInvalidada != nil {
-		c.redInvalidada <- email
-	}
-	return nil
-}
 func (c *cacheFalsa) InvalidarTodasLasRedes(context.Context) error {
 	if c.redInvalidada != nil {
 		c.redInvalidada <- "todas"
@@ -158,8 +152,12 @@ func prepararApp(datos *datosFalsos, cache *cacheFalsa) *fiber.App {
 
 func autorizar(peticion *http.Request) {
 	peticion.Header.Set("Idempotency-Key", "prueba-compra-1234567890")
+	autorizarRol(peticion, "cliente")
+}
+
+func autorizarRol(peticion *http.Request, rol string) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": "2", "email": "cliente@upse.edu.ec", "rol": "cliente", "exp": time.Now().Add(time.Hour).Unix(),
+		"sub": "2", "email": "cliente@upse.edu.ec", "rol": rol, "exp": time.Now().Add(time.Hour).Unix(),
 	})
 	firmado, _ := token.SignedString([]byte("clave-de-pruebas-con-mas-de-32-caracteres"))
 	peticion.Header.Set("Authorization", "Bearer "+firmado)
@@ -241,6 +239,54 @@ func TestProductoPorID(t *testing.T) {
 	respuesta, err := prepararApp(&datosFalsos{}, &cacheFalsa{}).Test(httptest.NewRequest("GET", "/api/productos/1", nil))
 	if err != nil || respuesta.StatusCode != fiber.StatusOK {
 		t.Fatalf("se esperaba estado 200, respuesta=%v error=%v", respuesta, err)
+	}
+}
+
+func TestRutasDelClienteYAdministrador(t *testing.T) {
+	producto := `{"nombre":"Producto de prueba","descripcion":"Detalle","precio":20,"categoria":"Prueba","img":"/products/images/prueba.webp","stock":5}`
+	casos := []struct {
+		nombre, metodo, ruta, cuerpo, rol string
+		esperado                          int
+	}{
+		{"catálogo público", "GET", "/api/productos", "", "", fiber.StatusOK},
+		{"red del cliente", "GET", "/api/red", "", "cliente", fiber.StatusOK},
+		{"pedidos del cliente", "GET", "/api/pedidos", "", "cliente", fiber.StatusOK},
+		{"comisiones del cliente", "GET", "/api/comisiones", "", "cliente", fiber.StatusOK},
+		{"productos administrativos", "GET", "/api/admin/productos", "", "admin", fiber.StatusOK},
+		{"crear producto", "POST", "/api/admin/productos", producto, "admin", fiber.StatusCreated},
+		{"actualizar producto", "PUT", "/api/admin/productos/1", producto, "admin", fiber.StatusOK},
+		{"desactivar producto", "DELETE", "/api/admin/productos/1", "", "admin", fiber.StatusNoContent},
+		{"pedidos administrativos", "GET", "/api/admin/pedidos", "", "admin", fiber.StatusOK},
+		{"actualizar pedido", "PATCH", "/api/admin/pedidos/1/estado", `{"estado":"preparando"}`, "admin", fiber.StatusNoContent},
+		{"cancelar pedido", "POST", "/api/admin/pedidos/1/cancelar", "", "admin", fiber.StatusNoContent},
+		{"comisiones administrativas", "GET", "/api/admin/comisiones?estado=pendiente", "", "admin", fiber.StatusOK},
+		{"crear liquidación", "POST", "/api/admin/liquidaciones", `{"comisionIds":[1]}`, "admin", fiber.StatusCreated},
+		{"reporte general", "GET", "/api/admin/reportes/general", "", "admin", fiber.StatusOK},
+	}
+
+	for _, caso := range casos {
+		t.Run(caso.nombre, func(t *testing.T) {
+			peticion := httptest.NewRequest(caso.metodo, caso.ruta, bytes.NewBufferString(caso.cuerpo))
+			if caso.cuerpo != "" {
+				peticion.Header.Set("Content-Type", "application/json")
+			}
+			if caso.rol != "" {
+				autorizarRol(peticion, caso.rol)
+			}
+			respuesta, err := prepararApp(&datosFalsos{}, &cacheFalsa{}).Test(peticion)
+			if err != nil || respuesta.StatusCode != caso.esperado {
+				t.Fatalf("se esperaba estado %d, se recibió %v, error=%v", caso.esperado, respuesta, err)
+			}
+		})
+	}
+}
+
+func TestClienteNoPuedeUsarAdministracion(t *testing.T) {
+	peticion := httptest.NewRequest("GET", "/api/admin/productos", nil)
+	autorizarRol(peticion, "cliente")
+	respuesta, err := prepararApp(&datosFalsos{}, &cacheFalsa{}).Test(peticion)
+	if err != nil || respuesta.StatusCode != fiber.StatusForbidden {
+		t.Fatalf("se esperaba estado 403, respuesta=%v error=%v", respuesta, err)
 	}
 }
 

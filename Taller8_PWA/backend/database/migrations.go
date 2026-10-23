@@ -20,6 +20,7 @@ var migraciones = []string{
 	"008_catalogo_renovado.sql",
 	"009_datos_demostracion.sql",
 	"010_fotos_productos.sql",
+	"011_escenarios_demostracion.sql",
 }
 
 const bloqueoMigraciones int64 = 807302
