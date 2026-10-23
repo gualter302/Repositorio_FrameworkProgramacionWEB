@@ -7,7 +7,12 @@ type IconType = LucideIcon;
 export const BrandMark = ({ compact = false }: { compact?: boolean }) => (
   <div className="brand-mark" aria-label="MultiCatálogo">
     <span className="brand-symbol"><Boxes size={21} aria-hidden="true" /></span>
-    {!compact && <span>MultiCatálogo</span>}
+    {!compact && (
+      <span className="brand-copy">
+        <span>MultiCatálogo</span>
+        <small>Oscar Gonzabay</small>
+      </span>
+    )}
   </div>
 );
 
