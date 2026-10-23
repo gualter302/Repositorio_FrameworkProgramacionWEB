@@ -37,6 +37,9 @@ Las cuentas de demostración son:
 - Administrador: `admin@upse.edu.ec` / `123456123456`
 - Cliente: `cliente@upse.edu.ec` / `123456`
 
+En el inicio de sesión se puede seleccionar cualquiera de las dos cuentas para completar
+automáticamente el correo y la contraseña antes de ingresar.
+
 ## Datos de demostración
 
 La migración `009_datos_demostracion.sql` prepara cinco compras del cliente de prueba en
