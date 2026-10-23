@@ -15,6 +15,74 @@ test('muestra las cuentas de prueba en el inicio de sesión', async ({ page }) =
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
+test('recorre registro, red, pedidos, comisiones, catálogo y compra del cliente', async ({ page }) => {
+  let registro: Record<string, string> | null = null;
+  let compraRegistrada = false;
+  const claims = Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url');
+  const producto = { id: 101, nombre: 'Auriculares Orbit', descripcion: 'Producto de prueba', categoria: 'Tecnología', precio: 39.90, img: '/products/images/auriculares-orbit.webp', galeria: [], stock: 1, activo: true };
+  const red = [{
+    id: 6, nombre: 'Cliente Demo', codigo: 'DEMO', nivel: 4, ventas: 208.80, comisiones: 8.36, parentId: 4,
+    hijos: [
+      { id: 7, nombre: 'Sofía Rivera', codigo: 'DEMO-SOFIA', nivel: 5, ventas: 66.85, comisiones: 2.01, parentId: 6, hijos: [{ id: 9, nombre: 'Valentina Cruz', codigo: 'DEMO-VALE', nivel: 6, ventas: 0, comisiones: 0, parentId: 7, hijos: [] }] },
+      { id: 8, nombre: 'Mateo Salazar', codigo: 'DEMO-MATEO', nivel: 5, ventas: 0, comisiones: 0, parentId: 6, hijos: [] },
+    ],
+  }];
+  const pedido = { id: 501, numero: 'DEMO-2026-005', total: 92.45, estado: 'confirmado', fecha: new Date().toISOString(), cliente: { nombre: 'Cliente Demo', email: 'cliente@upse.edu.ec', direccion: 'La Milina', ciudad: 'Salinas', telefono: '0991234567' }, usuarioEmail: 'cliente@upse.edu.ec', items: [{ productoId: 101, nombre: 'Auriculares Orbit', cantidad: 1, precio: 39.90, subtotal: 39.90 }] };
+
+  await page.route('**/api/**', route => {
+    const url = new URL(route.request().url());
+    const method = route.request().method();
+    if (url.pathname === '/api/register' && method === 'POST') {
+      registro = route.request().postDataJSON() as Record<string, string>;
+      return route.fulfill({ status: 201, json: { email: 'nueva@upse.edu.ec', nombre: 'Nueva Persona', rol: 'cliente', token: `test.${claims}.firma` } });
+    }
+    if (url.pathname === '/api/red') return route.fulfill({ json: red });
+    if (url.pathname === '/api/pedidos') return route.fulfill({ json: [pedido] });
+    if (url.pathname === '/api/comisiones') return route.fulfill({ json: [{ id: 81, pedidoId: 501, numeroPedido: 'PRUEBA-RED-001', referidoId: 6, referido: 'Cliente Demo', nivel: 1, porcentaje: 0.05, monto: 3.14, estado: 'pagada', fecha: new Date().toISOString() }] });
+    if (url.pathname === '/api/productos') return route.fulfill({ json: [producto] });
+    if (url.pathname === '/api/checkout' && method === 'POST') {
+      compraRegistrada = true;
+      return route.fulfill({ status: 201, json: { ...pedido, id: 900, numero: 'MC-000900', total: 39.90, items: pedido.items } });
+    }
+    return route.fulfill({ status: 404, json: { error: `Ruta simulada no encontrada: ${method} ${url.pathname}` } });
+  });
+
+  await page.goto('/registro?ref=demo');
+  await page.getByLabel('Nombre completo').fill('Nueva Persona');
+  await page.getByLabel('Correo electrónico').fill('nueva@upse.edu.ec');
+  await page.getByLabel('Contraseña').fill('123456');
+  await expect(page.getByLabel('Código de referido (opcional)')).toHaveValue('DEMO');
+  await page.getByRole('button', { name: 'Registrarme' }).click();
+  await expect(page).toHaveURL(/\/mi-red$/);
+  expect(registro).toMatchObject({ ref: 'DEMO', email: 'nueva@upse.edu.ec' });
+  await expect(page.locator('tbody')).toContainText('Sofía Rivera');
+  await expect(page.locator('tbody')).not.toContainText('Cliente Demo');
+
+  await page.goto('/');
+  await expect(page.getByText('$208.80')).toBeVisible();
+  await expect(page.getByText('$8.36')).toBeVisible();
+  await expect(page.locator('.metric-card').filter({ hasText: 'Referidos activos' })).toContainText('3');
+  await page.goto('/pedidos');
+  await expect(page.getByText('DEMO-2026-005')).toBeVisible();
+  await page.goto('/comisiones');
+  await expect(page.getByText('PRUEBA-RED-001')).toBeVisible();
+
+  await page.goto('/catalogo');
+  await page.getByRole('button', { name: 'Añadir al carrito' }).click();
+  await expect(page.getByRole('button', { name: 'Stock agregado' })).toBeDisabled();
+  await page.goto('/checkout');
+  await page.getByLabel('Nombre completo *', { exact: true }).fill('Nueva Persona');
+  await page.getByLabel('Dirección *', { exact: true }).fill('Barrio Central');
+  await page.getByLabel('Ciudad *', { exact: true }).fill('Santa Elena');
+  await page.getByLabel('Teléfono *', { exact: true }).fill('0999999999');
+  await page.getByRole('button', { name: 'Confirmar Pedido' }).click();
+  await expect(page).toHaveURL(/\/confirmacion$/);
+  await expect(page.getByText('MC-000900')).toBeVisible();
+  expect(compraRegistrada).toBe(true);
+  await page.goto('/carrito');
+  await expect(page.getByText('Tu carrito está vacío actualmente.')).toBeVisible();
+});
+
 test('los reportes cortos aprovechan el espacio sin mostrar desplazamiento horizontal', async ({ page }) => {
   await page.route('**/api/admin/reportes/general', route => route.fulfill({ json: {
     totalVentas: 3563.85, totalPedidos: 12, ticketPromedio: 296.99, totalComisiones: 92.40, pendientePagar: 48.20,
@@ -36,24 +104,40 @@ test('los reportes cortos aprovechan el espacio sin mostrar desplazamiento horiz
   }
 });
 
-test('confirma acciones administrativas con un modal integrado al diseño', async ({ page }) => {
+test('recorre productos, pedidos, liquidaciones y reportes del administrador', async ({ page }) => {
   let productoDesactivado = false;
-  await page.route('**/api/admin/productos**', route => {
-    if (route.request().method() === 'DELETE') {
+  let productoCreado = false;
+  let productoActualizado = false;
+  let estadoActualizado = false;
+  let pedidoCancelado = false;
+  let liquidacionCreada = false;
+  const producto = { id: 101, nombre: 'Auriculares Orbit', descripcion: 'Producto de prueba', categoria: 'Tecnología', precio: 39.90, img: '/products/images/auriculares-orbit.webp', galeria: [], stock: 10, activo: true };
+  const pedidos = [
+    { id: 501, numero: 'PRUEBA-ADMIN-001', total: 75.20, estado: 'confirmado', fecha: new Date().toISOString(), cliente: { nombre: 'Administrador', email: 'admin@upse.edu.ec', direccion: 'UPSE', ciudad: 'Santa Elena', telefono: '0990000001' }, usuarioEmail: 'admin@upse.edu.ec', items: [] },
+    { id: 502, numero: 'PRUEBA-ADMIN-002', total: 68.40, estado: 'enviado', fecha: new Date().toISOString(), cliente: { nombre: 'Administrador', email: 'admin@upse.edu.ec', direccion: 'UPSE', ciudad: 'Santa Elena', telefono: '0990000001' }, usuarioEmail: 'admin@upse.edu.ec', items: [] },
+  ];
+  const comisiones = [
+    { id: 31, pedidoId: 501, numeroPedido: 'DEMO-001', referidoId: 6, referido: 'Cliente Demo', nivel: 1, porcentaje: 0.05, monto: 3.25, estado: 'pendiente', fecha: new Date().toISOString() },
+    { id: 32, pedidoId: 502, numeroPedido: 'DEMO-002', referidoId: 6, referido: 'Cliente Demo', nivel: 1, porcentaje: 0.05, monto: 4.10, estado: 'pendiente', fecha: new Date().toISOString() },
+    { id: 33, pedidoId: 503, numeroPedido: 'DEMO-003', referidoId: 2, referido: 'Ana Torres', nivel: 2, porcentaje: 0.03, monto: 2.20, estado: 'pendiente', fecha: new Date().toISOString() },
+  ];
+  await page.route('**/api/**', route => {
+    const url = new URL(route.request().url());
+    const method = route.request().method();
+    if (url.pathname === '/api/admin/productos' && method === 'GET') return route.fulfill({ json: [producto] });
+    if (url.pathname === '/api/admin/productos' && method === 'POST') { productoCreado = true; return route.fulfill({ status: 201, json: { ...producto, id: 121 } }); }
+    if (url.pathname === '/api/admin/productos/101' && method === 'PUT') { productoActualizado = route.request().postDataJSON().img.startsWith('/products/'); return route.fulfill({ json: producto }); }
+    if (url.pathname === '/api/admin/productos/101' && method === 'DELETE') {
       productoDesactivado = true;
       return route.fulfill({ status: 200, json: null });
     }
-    return route.fulfill({ json: [{
-      id: 101,
-      nombre: 'Auriculares Orbit',
-      descripcion: 'Producto de prueba',
-      categoria: 'Tecnología',
-      precio: 39.90,
-      img: '/products/images/auriculares-orbit.webp',
-      galeria: [],
-      stock: 10,
-      activo: true,
-    }] });
+    if (url.pathname === '/api/admin/pedidos' && method === 'GET') return route.fulfill({ json: { datos: pedidos, pagina: 1, limite: 10, total: pedidos.length } });
+    if (url.pathname === '/api/admin/pedidos/501/estado' && method === 'PATCH') { estadoActualizado = true; return route.fulfill({ status: 204 }); }
+    if (url.pathname === '/api/admin/pedidos/501/cancelar' && method === 'POST') { pedidoCancelado = true; return route.fulfill({ status: 204 }); }
+    if (url.pathname === '/api/admin/comisiones' && method === 'GET') return route.fulfill({ json: comisiones });
+    if (url.pathname === '/api/admin/liquidaciones' && method === 'POST') { liquidacionCreada = true; return route.fulfill({ status: 201, json: { id: 77, monto: 7.35, fecha: new Date().toISOString() } }); }
+    if (url.pathname === '/api/admin/reportes/general') return route.fulfill({ json: { totalVentas: 143.60, totalPedidos: 2, ticketPromedio: 71.80, totalComisiones: 9.55, pendientePagar: 9.55, productosPrincipales: [{ nombre: 'Auriculares Orbit', cantidad: 2, ventas: 79.80 }], referidosPrincipales: [{ nombre: 'Cliente Demo', ventas: 208.80, comisiones: 8.36 }] } });
+    return route.fulfill({ status: 404, json: { error: `Ruta simulada no encontrada: ${method} ${url.pathname}` } });
   });
   await page.goto('/login');
   await page.evaluate(() => {
@@ -61,6 +145,20 @@ test('confirma acciones administrativas con un modal integrado al diseño', asyn
     localStorage.setItem('multicatalogo_sesion', JSON.stringify({ email: 'admin@upse.edu.ec', token: `a.${payload}.c`, rol: 'admin' }));
   });
   await page.goto('/admin/productos');
+
+  await page.getByLabel('Nombre').fill('Producto nuevo');
+  await page.getByLabel('Precio').fill('20');
+  await page.getByLabel('Categoría').fill('Prueba');
+  await page.getByLabel('Stock').fill('5');
+  await page.getByRole('button', { name: 'Crear producto' }).click();
+  await expect.poll(() => productoCreado).toBe(true);
+  await expect(page.getByText('Producto creado correctamente.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Editar' }).click();
+  await expect(page.getByLabel('Ruta o URL de imagen principal')).toHaveValue('/products/images/auriculares-orbit.webp');
+  await page.getByRole('button', { name: 'Guardar cambios' }).click();
+  await expect.poll(() => productoActualizado).toBe(true);
+  await expect(page.getByText('Producto actualizado correctamente.')).toBeVisible();
 
   await page.getByRole('button', { name: 'Desactivar' }).click();
   const modal = page.getByRole('alertdialog');
@@ -75,6 +173,29 @@ test('confirma acciones administrativas con un modal integrado al diseño', asyn
   await modal.getByRole('button', { name: 'Sí, desactivar' }).click();
   await expect.poll(() => productoDesactivado).toBe(true);
   await expect(page.getByText('Producto desactivado correctamente.')).toBeVisible();
+
+  await page.goto('/admin/pedidos');
+  await expect(page.getByRole('button', { name: 'Cancelar' })).toHaveCount(1);
+  await page.getByLabel('Estado de PRUEBA-ADMIN-001').selectOption('preparando');
+  await expect.poll(() => estadoActualizado).toBe(true);
+  await page.getByRole('button', { name: 'Cancelar' }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Sí, cancelar pedido' }).click();
+  await expect.poll(() => pedidoCancelado).toBe(true);
+
+  await page.goto('/admin/comisiones');
+  await page.getByLabel('Seleccionar comisión 31').check();
+  await expect(page.getByLabel('Seleccionar comisión 32')).toBeEnabled();
+  await expect(page.getByLabel('Seleccionar comisión 33')).toBeDisabled();
+  await page.getByLabel('Seleccionar comisión 32').check();
+  await page.getByRole('button', { name: 'Crear liquidación (2)' }).click();
+  await expect(page.getByRole('alertdialog')).toContainText('$7.35');
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Confirmar liquidación' }).click();
+  await expect.poll(() => liquidacionCreada).toBe(true);
+  await expect(page.getByText('Liquidación #77 creada por $7.35.')).toBeVisible();
+
+  await page.goto('/admin/reportes');
+  await expect(page.getByRole('heading', { name: 'Reportes generales' })).toBeVisible();
+  await expect(page.getByText('$143.60')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 

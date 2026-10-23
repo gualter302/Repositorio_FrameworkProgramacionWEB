@@ -64,6 +64,7 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   busy?: boolean;
+  tone?: 'danger' | 'primary';
 }
 
 export const ConfirmDialog = ({
@@ -74,6 +75,7 @@ export const ConfirmDialog = ({
   onConfirm,
   onCancel,
   busy = false,
+  tone = 'danger',
 }: ConfirmDialogProps) => {
   const cancelButton = useRef<HTMLButtonElement>(null);
 
@@ -102,6 +104,7 @@ export const ConfirmDialog = ({
         aria-labelledby="confirm-dialog-title"
         aria-describedby="confirm-dialog-description"
         className="confirm-dialog"
+        data-tone={tone}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <button type="button" className="icon-button modal-close" onClick={onCancel} disabled={busy} aria-label="Cerrar confirmación"><X size={18} /></button>
@@ -111,7 +114,7 @@ export const ConfirmDialog = ({
         <p id="confirm-dialog-description" className="confirm-dialog__description">{description}</p>
         <div className="confirm-dialog__actions">
           <button ref={cancelButton} type="button" className="btn-secondary" onClick={onCancel} disabled={busy}>Volver</button>
-          <button type="button" className="btn-danger" onClick={onConfirm} disabled={busy}>{busy ? 'Procesando...' : confirmLabel}</button>
+          <button type="button" className={tone === 'danger' ? 'btn-danger' : 'btn-primary'} onClick={onConfirm} disabled={busy}>{busy ? 'Procesando...' : confirmLabel}</button>
         </div>
       </section>
     </div>,

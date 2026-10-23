@@ -10,7 +10,7 @@ const Registro = () => {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [ref, setRef] = useState(parametros.get('ref') ?? '');
+  const [ref, setRef] = useState((parametros.get('ref') ?? '').toUpperCase());
   const [error, setError] = useState('');
   const [guardando, setGuardando] = useState(false);
   const { login } = useAuth();

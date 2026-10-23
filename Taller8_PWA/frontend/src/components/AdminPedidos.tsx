@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ClipboardList, Search, XCircle } from 'lucid
 import { ConfirmDialog, EmptyState, PageHeader, StatusBadge } from './Ui';
 
 const estados = ['procesando', 'preparando', 'enviado', 'entregado'];
+const estadosCancelables = ['pendiente', 'confirmado', 'procesando'];
 
 const AdminPedidos = () => {
   const [pedidos, setPedidos] = useState<PedidoResumen[]>([]);
@@ -65,7 +66,7 @@ const AdminPedidos = () => {
                   <option value={pedido.estado}>{pedido.estado}</option>
                   {estados.filter((estado) => estado !== pedido.estado).map((estado) => <option key={estado} value={estado}>{estado}</option>)}
                 </select>
-                {pedido.estado !== 'cancelado' && pedido.estado !== 'entregado' && <button disabled={actualizando === pedido.id} onClick={() => setPedidoACancelar(pedido)} className="btn-danger"><XCircle size={16} />Cancelar</button>}
+                {estadosCancelables.includes(pedido.estado) && <button disabled={actualizando === pedido.id} onClick={() => setPedidoACancelar(pedido)} className="btn-danger"><XCircle size={16} />Cancelar</button>}
               </div>
             </div>
           </article>

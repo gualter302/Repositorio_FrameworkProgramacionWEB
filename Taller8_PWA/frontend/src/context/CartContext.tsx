@@ -67,13 +67,14 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     setCart((prevCart) => {
       const itemExists = prevCart.find((item) => item.id === producto.id);
       if (itemExists) {
+        if (itemExists.cantidad >= producto.stock) return prevCart;
         return prevCart.map((item) =>
           item.id === producto.id
             ? { ...item, cantidad: item.cantidad + 1 }
             : item
         );
       }
-      return [...prevCart, { ...producto, cantidad: 1 }];
+      return producto.stock > 0 ? [...prevCart, { ...producto, cantidad: 1 }] : prevCart;
     });
   };
 

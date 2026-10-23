@@ -19,17 +19,17 @@ const Dashboard = () => {
   }, [userEmail]);
 
   const resumen = useMemo(() => {
-    const personas = aLista(red);
+    const referidos = red.flatMap((raiz) => aLista(raiz.hijos ?? []));
     return {
-      ventas: personas.reduce((total, persona) => total + persona.ventas, 0),
-      comisiones: personas.reduce((total, persona) => total + persona.comisiones, 0),
-      activos: personas.length,
+      ventas: red.reduce((total, raiz) => total + raiz.ventas, 0),
+      comisiones: red.reduce((total, raiz) => total + raiz.comisiones, 0),
+      activos: referidos.length,
     };
   }, [red]);
 
   return (
     <div className="page page-stack">
-      <PageHeader kicker="Actividad" title="Resumen general" description="Una lectura rápida de las ventas, comisiones y personas que forman tu red." action={<Link to="/catalogo" className="btn-secondary">Ver catálogo <ArrowUpRight size={17} /></Link>} />
+      <PageHeader kicker="Actividad" title="Resumen general" description="Una lectura rápida de tus ventas, comisiones y personas referidas." action={<Link to="/catalogo" className="btn-secondary">Ver catálogo <ArrowUpRight size={17} /></Link>} />
       {error && <div className="alert-error" role="alert">{error}</div>}
       <div className="metric-grid">
         <div className="metric-card glass-panel--accent">

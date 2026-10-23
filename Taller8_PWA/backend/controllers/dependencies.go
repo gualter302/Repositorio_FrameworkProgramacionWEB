@@ -37,7 +37,6 @@ type CacheRepository interface {
 	InvalidarProductos(context.Context) error
 	ObtenerRed(context.Context, string) ([]*models.Referido, bool)
 	GuardarRed(context.Context, string, []*models.Referido)
-	InvalidarRed(context.Context, string) error
 	InvalidarTodasLasRedes(context.Context) error
 }
 

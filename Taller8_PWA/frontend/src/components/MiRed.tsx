@@ -23,7 +23,7 @@ const MiRed = () => {
       .finally(() => setCargando(false));
   }, [userEmail]);
 
-  const referidos = useMemo(() => aLista(red), [red]);
+  const referidos = useMemo(() => red.flatMap((raiz) => aLista(raiz.hijos ?? [])), [red]);
   const codigoPropio = red[0]?.codigo;
   const enlaceReferido = codigoPropio ? `${window.location.origin}/registro?ref=${codigoPropio}` : '';
 

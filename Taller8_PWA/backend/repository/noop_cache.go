@@ -18,5 +18,4 @@ func (*NoopCache) ObtenerRed(context.Context, string) ([]*models.Referido, bool)
 	return nil, false
 }
 func (*NoopCache) GuardarRed(context.Context, string, []*models.Referido) {}
-func (*NoopCache) InvalidarRed(context.Context, string) error             { return nil }
 func (*NoopCache) InvalidarTodasLasRedes(context.Context) error           { return nil }

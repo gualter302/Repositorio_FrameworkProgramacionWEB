@@ -122,6 +122,8 @@ textarea.form-input { min-height: 7rem; resize: vertical; }
 .confirm-dialog { position: relative; width: min(100%, 30rem); border: 1px solid rgba(251, 113, 133, 0.28); border-radius: 1.5rem; padding: clamp(1.35rem, 5vw, 2rem); background: linear-gradient(145deg, rgba(17, 33, 51, 0.98), rgba(3, 13, 27, 0.98)); box-shadow: 0 32px 100px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.06); animation: modal-enter 220ms ease-out both; }
 .modal-close { position: absolute; top: 0.85rem; right: 0.85rem; }
 .confirm-dialog__icon { display: grid; width: 3.5rem; height: 3.5rem; margin-bottom: 1.2rem; place-items: center; border: 1px solid rgba(251, 113, 133, 0.3); border-radius: 1rem; color: #fda4af; background: rgba(159, 18, 57, 0.18); box-shadow: 0 0 35px rgba(244, 63, 94, 0.09); }
+.confirm-dialog[data-tone="primary"] { border-color: var(--line-strong); }
+.confirm-dialog[data-tone="primary"] .confirm-dialog__icon { border-color: var(--line-strong); color: var(--accent); background: rgba(48, 214, 223, 0.1); box-shadow: 0 0 35px rgba(48, 214, 223, 0.09); }
 .confirm-dialog__title { margin: 0; padding-right: 2rem; color: #fff; font-size: clamp(1.35rem, 5vw, 1.7rem); font-weight: 700; letter-spacing: -0.025em; }
 .confirm-dialog__description { margin: 0.8rem 0 0; color: var(--muted); line-height: 1.65; }
 .confirm-dialog__actions { display: flex; flex-direction: column-reverse; gap: 0.75rem; margin-top: 1.6rem; }

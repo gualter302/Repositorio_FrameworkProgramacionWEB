@@ -128,7 +128,7 @@ const AdminProductos = () => {
         <label><span className="field-label">Precio</span><input required type="number" min="0" step="0.01" value={formulario.precio} onChange={(e) => cambiar('precio', Number(e.target.value))} className="form-input" /></label>
         <label><span className="field-label">Categoría</span><input value={formulario.categoria} onChange={(e) => cambiar('categoria', e.target.value)} className="form-input" /></label>
         <label><span className="field-label">Stock</span><input required type="number" min="0" value={formulario.stock} onChange={(e) => cambiar('stock', Number(e.target.value))} className="form-input" /></label>
-        <label className="md:col-span-2"><span className="field-label">URL de imagen principal</span><input type="url" value={formulario.img} onChange={(e) => cambiar('img', e.target.value)} placeholder="https://..." className="form-input" /></label>
+        <label className="md:col-span-2"><span className="field-label">Ruta o URL de imagen principal</span><input type="text" value={formulario.img} onChange={(e) => cambiar('img', e.target.value)} placeholder="/products/images/producto.webp o https://..." className="form-input" /></label>
         <label className="md:col-span-2"><span className="field-label">Descripción</span><textarea value={formulario.descripcion} onChange={(e) => cambiar('descripcion', e.target.value)} className="form-input" rows={3} /></label>
         <div className="flex flex-wrap gap-3 md:col-span-2">
           <button type="submit" className="btn-primary"><PackagePlus size={17} />
