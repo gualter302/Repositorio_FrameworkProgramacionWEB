@@ -3,7 +3,7 @@
 ## Estado general
 
 - **Hito actual:** Taller 8 PWA publicado en Render y en validación desde dispositivos móviles.
-- **Última tarea completada:** catálogo propio, cuentas de prueba y datos iniciales para pedidos, comisiones y reportes.
+- **Última tarea completada:** catálogo con fotografías, cuentas de acceso rápido y reportes adaptables sin desplazamiento innecesario.
 - **Siguiente tarea pendiente:** desplegar los cambios y confirmar la reapertura sin conexión en Android/iOS.
 - **Base recomendada:** `Taller8_PWA/`.
 - **Fuentes disponibles:** guía práctica, planificación, análisis funcional y README de cada taller.

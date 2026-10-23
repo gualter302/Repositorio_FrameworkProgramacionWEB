@@ -5,7 +5,35 @@ test('muestra las cuentas de prueba en el inicio de sesión', async ({ page }) =
   await expect(page.getByText('Cuentas de prueba')).toBeVisible();
   await expect(page.getByText('admin@upse.edu.ec', { exact: false })).toBeVisible();
   await expect(page.getByText('cliente@upse.edu.ec', { exact: false })).toBeVisible();
-  await expect(page.getByText('la definida en Render')).toBeVisible();
+  await expect(page.getByText('123456123456')).toBeVisible();
+  await page.getByRole('button', { name: 'Usar cuenta de administrador' }).click();
+  await expect(page.getByPlaceholder('admin@upse.edu.ec')).toHaveValue('admin@upse.edu.ec');
+  await expect(page.locator('input[type=password]')).toHaveValue('123456123456');
+  await page.getByRole('button', { name: 'Usar cuenta de cliente' }).click();
+  await expect(page.getByPlaceholder('admin@upse.edu.ec')).toHaveValue('cliente@upse.edu.ec');
+  await expect(page.locator('input[type=password]')).toHaveValue('123456');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('los reportes cortos aprovechan el espacio sin mostrar desplazamiento horizontal', async ({ page }) => {
+  await page.route('**/api/admin/reportes/general', route => route.fulfill({ json: {
+    totalVentas: 3563.85, totalPedidos: 12, ticketPromedio: 296.99, totalComisiones: 92.40, pendientePagar: 48.20,
+    productosPrincipales: [{ nombre: 'Banda Active', cantidad: 2, ventas: 29.80 }, { nombre: 'Libreta Terra', cantidad: 2, ventas: 25.20 }],
+    referidosPrincipales: [{ nombre: 'Ana Torres', ventas: 1567.95, comisiones: 31.36 }, { nombre: 'Administrador', ventas: 367.95, comisiones: 7.36 }],
+  } }));
+  await page.goto('/login');
+  await page.evaluate(() => {
+    const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }));
+    localStorage.setItem('multicatalogo_sesion', JSON.stringify({ email: 'admin@upse.edu.ec', token: `a.${payload}.c`, rol: 'admin' }));
+  });
+
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 375, height: 812 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto('/admin/reportes');
+    await expect(page.getByRole('heading', { name: 'Productos principales' })).toBeVisible();
+    expect(await page.locator('.data-shell--fit').evaluateAll(items => items.every(item => item.scrollWidth <= item.clientWidth))).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  }
 });
 
 test('instala service worker, conserva carrito y catálogo offline sin cachear datos privados', async ({ page, context }) => {
@@ -56,6 +84,8 @@ test('manifest e iconos disponibles y primera visita sin catálogo muestra un er
   const data = await manifest.json();
   expect(data.display).toBe('standalone');
   for (const icon of data.icons) expect((await page.request.get(icon.src)).ok()).toBe(true);
+  const fotos = ['auriculares-orbit', 'teclado-nova', 'mouse-pulse', 'parlante-echo', 'bateria-volt', 'lampara-aura', 'botella-atlas', 'mochila-urban', 'organizador-zen', 'difusor-bruma', 'banda-active', 'mat-yoga', 'kit-lumen', 'protector-nube', 'reloj-vector', 'lentes-prisma', 'libreta-terra', 'taza-andina', 'hub-nexus', 'soporte-flex'];
+  for (const foto of fotos) expect((await page.request.get(`/products/images/${foto}.webp`)).ok()).toBe(true);
   await page.route('**/api/**', route => route.abort());
   await page.goto('/catalogo');
   await expect(page.getByText('No se pudo conectar con el servidor.', { exact: false })).toBeVisible();

@@ -34,9 +34,11 @@ es independiente de los talleres anteriores.
 
 Las cuentas de demostración son:
 
-- Administrador local: `admin@upse.edu.ec` / `123456`
-- Administrador publicado: `admin@upse.edu.ec` / clave definida en `ADMIN_PASSWORD`
+- Administrador: `admin@upse.edu.ec` / `123456123456`
 - Cliente: `cliente@upse.edu.ec` / `123456`
+
+En el inicio de sesión se puede seleccionar cualquiera de las dos cuentas para completar
+automáticamente el correo y la contraseña antes de ingresar.
 
 ## Datos de demostración
 
@@ -45,6 +47,10 @@ distintos estados, sus diez detalles, las comisiones de tres niveles y tres liqu
 Esto permite revisar desde el primer inicio Mis pedidos, administración de pedidos,
 comisiones, red y reportes sin registrar compras manualmente. El seeder guarda su propia
 versión y no duplica la información si vuelve a ejecutarse.
+
+Las fotografías del catálogo se guardan en `frontend/public/products/images/`. Son archivos
+WebP locales y optimizados, por lo que no dependen de páginas externas y también quedan
+disponibles en la copia instalada de la PWA.
 
 Para abrir el sistema desde un teléfono conectado a la misma red Wi-Fi, ejecutar `ipconfig`,
 buscar la dirección IPv4 del equipo y visitar `http://DIRECCION_IP:4178/catalogo` desde el
@@ -123,8 +129,8 @@ Antes de comenzar, fusionar esta rama en `main` y subirla a GitHub. Después:
 2. En el panel de Render elegir **New → Blueprint** y conectar el repositorio
    `gualter302/Repositorio_FrameworkProgramacionWEB`.
 3. Seleccionar la rama `main` y escribir `Taller8_PWA/render.yaml` en **Blueprint Path**.
-4. Render solicitará `ADMIN_PASSWORD`. Escribir una contraseña privada de al menos 12 caracteres;
-   reemplazará `123456` únicamente para la cuenta `admin@upse.edu.ec` publicada.
+4. Render solicitará `ADMIN_PASSWORD`. Escribir `123456123456` para que coincida con la cuenta
+   de prueba que aparece en el formulario de inicio de sesión.
 5. Revisar los tres recursos y elegir **Apply**. El primer despliegue puede tardar varios minutos
    porque compila el frontend, el backend y crea la base.
 6. Abrir el servicio `multicatalogo-pwa-gualter302`. Primero comprobar `/api/health` y después
