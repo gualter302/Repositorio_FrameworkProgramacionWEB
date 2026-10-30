@@ -49,6 +49,25 @@ func TestProtectedRoutesRequireSession(t *testing.T) {
 		t.Fatalf("esperado 401, recibido %d", res.Code)
 	}
 }
+
+func TestNormalizeStateProducesJSONArrays(t *testing.T) {
+	state := appState{
+		Patients: []patient{{ID: 1}},
+		Notes:    []clinicalNote{{ID: 1}},
+		Plans:    []treatmentPlan{{ID: 1}},
+		Invoices: []invoice{{ID: 1}},
+	}
+
+	normalizeState(&state)
+	raw, err := json.Marshal(state)
+	if err != nil {
+		t.Fatalf("no se pudo serializar el estado: %v", err)
+	}
+	if bytes.Contains(raw, []byte(":null")) {
+		t.Fatalf("el estado normalizado todavía contiene valores null: %s", raw)
+	}
+}
+
 func TestPatientCreatesVisibleMedicalAlerts(t *testing.T) {
 	handler := newServer().routes()
 	token := loginToken(t, handler, "recepcion@sigodental.ec")

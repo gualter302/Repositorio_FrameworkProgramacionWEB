@@ -16,6 +16,16 @@ export type CashClosure = { id: number; date: string; declaredCash: number; expe
 export type Report = { revenue: number; invoices: number; patients: number; appointments: number; attended: number; cancelled: number; noShow: number; inventoryValue: number; lowStock: number; auditEvents: number; pendingMessages: number }
 export type AuditEntry = { id: number; userEmail: string; action: string; entity: string; entityId: string; ip: string; createdAt: string }
 
+const asList = <T,>(value: T[] | null | undefined): T[] => value ?? []
+const normalizeClinicalRecord = (record: ClinicalRecord): ClinicalRecord => ({
+  ...record,
+  odontogram: asList(record.odontogram),
+  periodontal: asList(record.periodontal),
+  notes: asList(record.notes).map(note => ({ ...note, amendments: asList(note.amendments) })),
+  consents: asList(record.consents),
+  plans: asList(record.plans).map(plan => ({ ...plan, items: asList(plan.items) })),
+})
+
 const base = '/api'
 let token = localStorage.getItem('sigo_token') ?? ''
 export const setToken = (value: string) => { token = value; if (value) localStorage.setItem('sigo_token', value); else localStorage.removeItem('sigo_token') }
@@ -30,27 +40,27 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 export const api = {
   login: (email: string, password: string, otp = '') => request<Session>('/login', { method: 'POST', body: JSON.stringify({ email, password, otp }) }),
   dashboard: () => request<Dashboard>('/dashboard'),
-  patients: () => request<Patient[]>('/patients'),
+  patients: () => request<Patient[] | null>('/patients').then(asList),
   createPatient: (patient: Partial<Patient>) => request<Patient>('/patients', { method: 'POST', body: JSON.stringify(patient) }),
   updatePatient: (id: number, patient: Partial<Patient>) => request<Patient>(`/patients/${id}`, { method: 'PUT', body: JSON.stringify(patient) }),
-  appointments: () => request<Appointment[]>('/appointments'),
+  appointments: () => request<Appointment[] | null>('/appointments').then(asList),
   createAppointment: (appointment: Partial<Appointment>) => request<Appointment>('/appointments', { method: 'POST', body: JSON.stringify(appointment) }),
   changeAppointmentStatus: (id: number, status: string) => request<Appointment>(`/appointments/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
-  clinicalRecord: (patientId: number) => request<ClinicalRecord>(`/clinical/${patientId}`),
+  clinicalRecord: (patientId: number) => request<ClinicalRecord>(`/clinical/${patientId}`).then(normalizeClinicalRecord),
   addOdontogram: (patientId: number, entry: Partial<OdontogramEntry>) => request<OdontogramEntry>(`/clinical/${patientId}/odontogram`, { method: 'POST', body: JSON.stringify(entry) }),
   addPeriodontal: (patientId: number, entry: Partial<PeriodontalRecord>) => request<PeriodontalRecord>(`/clinical/${patientId}/periodontogram`, { method: 'POST', body: JSON.stringify(entry) }),
   addNote: (patientId: number, note: Partial<ClinicalNote>) => request<ClinicalNote>(`/clinical/${patientId}/notes`, { method: 'POST', body: JSON.stringify(note) }),
   addAmendment: (noteId: number, reason: string, content: string) => request<Amendment>(`/clinical/notes/${noteId}/amendments`, { method: 'POST', body: JSON.stringify({ reason, content }) }),
   addConsent: (patientId: number, consent: Record<string, string>) => request<Consent>(`/clinical/${patientId}/consents`, { method: 'POST', body: JSON.stringify(consent) }),
-  plans: () => request<TreatmentPlan[]>('/treatment-plans'),
+  plans: () => request<TreatmentPlan[] | null>('/treatment-plans').then(asList),
   createPlan: (plan: { patientId: number; items: TreatmentItem[] }) => request<TreatmentPlan>('/treatment-plans', { method: 'POST', body: JSON.stringify(plan) }),
   changePlanStatus: (id: number, status: string) => request<TreatmentPlan>(`/treatment-plans/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
-  inventory: () => request<InventoryItem[]>('/inventory'),
+  inventory: () => request<InventoryItem[] | null>('/inventory').then(asList),
   createInventoryItem: (item: Partial<InventoryItem>) => request<InventoryItem>('/inventory', { method: 'POST', body: JSON.stringify(item) }),
   adjustInventory: (id: number, quantity: number, reason: string) => request<InventoryItem>(`/inventory/${id}/adjust`, { method: 'POST', body: JSON.stringify({ quantity, reason }) }),
-  invoices: () => request<Invoice[]>('/invoices'),
+  invoices: () => request<Invoice[] | null>('/invoices').then(asList),
   createInvoice: (treatmentPlanId: number, paymentMethod: string) => request<Invoice>('/invoices', { method: 'POST', body: JSON.stringify({ treatmentPlanId, paymentMethod }) }),
   closeCash: (declaredCash: number) => request<CashClosure>('/cash-closures', { method: 'POST', body: JSON.stringify({ declaredCash }) }),
   report: () => request<Report>('/reports/general'),
-  audit: () => request<AuditEntry[]>('/audit'),
+  audit: () => request<AuditEntry[] | null>('/audit').then(asList),
 }

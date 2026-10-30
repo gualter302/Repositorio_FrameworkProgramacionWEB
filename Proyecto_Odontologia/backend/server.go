@@ -54,9 +54,10 @@ func newServerWithStore(store stateStore, jwtSecret, mfaSecret []byte) (*server,
 	}
 	if !found {
 		state = defaultState()
-		if err := store.Save(ctx, state); err != nil {
-			return nil, err
-		}
+	}
+	normalizeState(&state)
+	if err := store.Save(ctx, state); err != nil {
+		return nil, err
 	}
 	return &server{state: state, store: store, jwtSecret: jwtSecret, mfaSecret: mfaSecret, allowedOrigin: "http://localhost:5173", loginAttempts: map[string]loginAttempt{}}, nil
 }
