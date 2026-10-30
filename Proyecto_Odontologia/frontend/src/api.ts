@@ -1,7 +1,7 @@
 export type Session = { token: string; name: string; email: string; role: string; expiresIn: number }
 export type Patient = { id: number; document: string; firstName: string; lastName: string; birthDate: string; phone: string; email: string; address: string; emergencyContact: string; guardian: string; insurance: string; conditions: string[]; allergies: string[]; surgeries: string; anticoagulant: boolean; alerts: string[]; createdAt: string }
 export type Appointment = { id: number; patientId: number; patientName: string; dentist: string; chair: string; start: string; end: string; status: string; reason: string }
-export type Dashboard = { patients: number; todayAppointments: number; waiting: number; criticalAlerts: number; estimatedRevenue: number; lowStock: number; pendingInvoices: number }
+export type Dashboard = { patients: number; todayAppointments: number; waiting: number; criticalAlerts: number; estimatedRevenue: number; lowStock: number; pendingInvoices: number; nextAppointments?: Appointment[] }
 export type OdontogramEntry = { id: number; patientId: number; tooth: number; surface: string; condition: string; nomenclature: string; notes: string; recordedBy: string; recordedAt: string }
 export type PeriodontalRecord = { id: number; patientId: number; tooth: number; depths: number[]; margin: number; furcation: number; mobility: number; bleeding: boolean; recordedAt: string }
 export type Amendment = { id: number; reason: string; content: string; signedBy: string; createdAt: string }
@@ -15,6 +15,8 @@ export type Invoice = { id: number; number: string; patientId: number; patientNa
 export type CashClosure = { id: number; date: string; declaredCash: number; expectedCash: number; difference: number; closedBy: string; createdAt: string }
 export type Report = { revenue: number; invoices: number; patients: number; appointments: number; attended: number; cancelled: number; noShow: number; inventoryValue: number; lowStock: number; auditEvents: number; pendingMessages: number }
 export type AuditEntry = { id: number; userEmail: string; action: string; entity: string; entityId: string; ip: string; createdAt: string }
+export type Settlement = { id: number; professional: string; period: string; amount: number; status: string; createdAt: string }
+export type OutboxMessage = { id: number; channel: string; recipient: string; template: string; status: string; createdAt: string }
 
 const asList = <T,>(value: T[] | null | undefined): T[] => value ?? []
 const normalizeClinicalRecord = (record: ClinicalRecord): ClinicalRecord => ({
@@ -61,6 +63,10 @@ export const api = {
   invoices: () => request<Invoice[] | null>('/invoices').then(asList),
   createInvoice: (treatmentPlanId: number, paymentMethod: string) => request<Invoice>('/invoices', { method: 'POST', body: JSON.stringify({ treatmentPlanId, paymentMethod }) }),
   closeCash: (declaredCash: number) => request<CashClosure>('/cash-closures', { method: 'POST', body: JSON.stringify({ declaredCash }) }),
+  cashClosures: () => request<CashClosure[] | null>('/cash-closures').then(asList),
   report: () => request<Report>('/reports/general'),
   audit: () => request<AuditEntry[] | null>('/audit').then(asList),
+  settlements: () => request<Settlement[] | null>('/settlements').then(asList),
+  createSettlement: (professional: string, period: string, percentage: number) => request<Settlement>('/settlements', { method: 'POST', body: JSON.stringify({ professional, period, percentage }) }),
+  outbox: () => request<OutboxMessage[] | null>('/outbox').then(asList),
 }
