@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: sigo-dental
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: Proyecto_Odontologia
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: sigo-dental-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MFA_SECRET
+        generateValue: true
+      - key: MFA_DEMO_CODE
+        sync: false
+      - key: CONSENT_OTP
+        sync: false
+      - key: STATIC_DIR
+        value: /app/static
+
+databases:
+  - name: sigo-dental-db
+    databaseName: sigodental
+    user: sigodental
+    postgresMajorVersion: "18"
+    region: oregon
+    ipAllowList: []
