@@ -109,6 +109,77 @@ func defaultState() appState {
 	}
 }
 
+func normalizeState(state *appState) {
+	if state.Users == nil {
+		state.Users = map[string]user{}
+	}
+	if state.Patients == nil {
+		state.Patients = []patient{}
+	}
+	if state.Appointments == nil {
+		state.Appointments = []appointment{}
+	}
+	if state.Odontogram == nil {
+		state.Odontogram = []odontogramEntry{}
+	}
+	if state.Periodontal == nil {
+		state.Periodontal = []periodontalRecord{}
+	}
+	if state.Notes == nil {
+		state.Notes = []clinicalNote{}
+	}
+	if state.Consents == nil {
+		state.Consents = []consent{}
+	}
+	if state.Plans == nil {
+		state.Plans = []treatmentPlan{}
+	}
+	if state.Inventory == nil {
+		state.Inventory = []inventoryItem{}
+	}
+	if state.Invoices == nil {
+		state.Invoices = []invoice{}
+	}
+	if state.Closures == nil {
+		state.Closures = []cashClosure{}
+	}
+	if state.Settlements == nil {
+		state.Settlements = []professionalSettlement{}
+	}
+	if state.Outbox == nil {
+		state.Outbox = []outboxMessage{}
+	}
+	if state.Audit == nil {
+		state.Audit = []auditEntry{}
+	}
+	for index := range state.Patients {
+		if state.Patients[index].Conditions == nil {
+			state.Patients[index].Conditions = []string{}
+		}
+		if state.Patients[index].Allergies == nil {
+			state.Patients[index].Allergies = []string{}
+		}
+		if state.Patients[index].Alerts == nil {
+			state.Patients[index].Alerts = []string{}
+		}
+	}
+	for index := range state.Notes {
+		if state.Notes[index].Amendments == nil {
+			state.Notes[index].Amendments = []amendment{}
+		}
+	}
+	for index := range state.Plans {
+		if state.Plans[index].Items == nil {
+			state.Plans[index].Items = []treatmentItem{}
+		}
+	}
+	for index := range state.Invoices {
+		if state.Invoices[index].Payments == nil {
+			state.Invoices[index].Payments = []paymentEntry{}
+		}
+	}
+}
+
 func storeFromEnvironment() (stateStore, error) {
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
