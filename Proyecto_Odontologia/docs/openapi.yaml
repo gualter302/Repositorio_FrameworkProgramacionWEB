@@ -1,0 +1,146 @@
+openapi: 3.0.3
+info:
+  title: SIGO Dental API
+  version: 1.0.0
+  description: API clínica y administrativa para pacientes, agenda, expediente, finanzas, inventario y auditoría.
+servers:
+  - url: /api
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    Error:
+      type: object
+      required: [message, code]
+      properties: { message: { type: string }, code: { type: string } }
+    Patient:
+      type: object
+      required: [document, firstName, lastName, birthDate, phone]
+      properties:
+        id: { type: integer, readOnly: true }
+        document: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        birthDate: { type: string, format: date }
+        phone: { type: string }
+        email: { type: string, format: email }
+        conditions: { type: array, items: { type: string } }
+        allergies: { type: array, items: { type: string } }
+        anticoagulant: { type: boolean }
+        alerts: { type: array, items: { type: string }, readOnly: true }
+    Appointment:
+      type: object
+      required: [patientId, dentist, chair, start, end, reason]
+      properties:
+        id: { type: integer, readOnly: true }
+        patientId: { type: integer }
+        dentist: { type: string }
+        chair: { type: string }
+        start: { type: string, format: date-time }
+        end: { type: string, format: date-time }
+        reason: { type: string }
+        status: { type: string }
+security: [{ bearerAuth: [] }]
+paths:
+  /health:
+    get:
+      security: []
+      summary: Verifica la disponibilidad del servicio
+      responses: { '200': { description: Disponible } }
+  /login:
+    post:
+      security: []
+      summary: Autentica con contraseña y segundo factor cuando corresponde
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties: { email: { type: string }, password: { type: string }, otp: { type: string } }
+      responses: { '200': { description: JWT creado }, '401': { description: Credenciales o MFA inválidos } }
+  /dashboard:
+    get: { summary: Indicadores del día, responses: { '200': { description: Indicadores } } }
+  /patients:
+    get: { summary: Lista pacientes, responses: { '200': { description: Lista de pacientes } } }
+    post:
+      summary: Registra ficha y calcula alertas médicas
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Patient' } } } }
+      responses: { '201': { description: Paciente creado }, '409': { description: Identificación duplicada }, '422': { description: Datos incompletos } }
+  /patients/{id}:
+    parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+    get: { summary: Consulta una ficha, responses: { '200': { description: Paciente }, '404': { description: No encontrado } } }
+    put: { summary: Actualiza ficha y alertas, responses: { '200': { description: Paciente actualizado } } }
+  /appointments:
+    get: { summary: Lista la agenda, responses: { '200': { description: Citas } } }
+    post:
+      summary: Agenda una cita sin superponer sillones
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Appointment' } } } }
+      responses: { '201': { description: Cita creada }, '409': { description: Sillón ocupado } }
+  /appointments/{id}/status:
+    patch:
+      summary: Cambia el estado y descuenta insumos al marcar Atendido
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: Cita actualizada }, '422': { description: Estado inválido } }
+  /clinical/{id}:
+    get:
+      summary: Expediente clínico consolidado
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: Odontograma, periodoncia, SOAP, consentimientos y planes } }
+  /clinical/{id}/odontogram:
+    post:
+      summary: Registra hallazgo por diente y superficie
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '201': { description: Hallazgo creado } }
+  /clinical/{id}/periodontogram:
+    post:
+      summary: Registra seis puntos de sondaje
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '201': { description: Sondaje creado } }
+  /clinical/{id}/notes:
+    post:
+      summary: Firma una nota SOAP inmutable
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '201': { description: Nota firmada } }
+  /clinical/notes/{id}/amendments:
+    post:
+      summary: Agrega una adenda sin modificar la nota original
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '201': { description: Adenda firmada } }
+  /clinical/{id}/consents:
+    post:
+      summary: Firma consentimiento con validación OTP
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '201': { description: Consentimiento firmado } }
+  /treatment-plans:
+    get: { summary: Lista presupuestos, responses: { '200': { description: Planes } } }
+    post: { summary: Crea presupuesto por fases y sesiones, responses: { '201': { description: Presupuesto creado } } }
+  /treatment-plans/{id}/status:
+    patch:
+      summary: Aprueba total o parcialmente un presupuesto
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: Presupuesto actualizado } }
+  /inventory:
+    get: { summary: Lista existencias, responses: { '200': { description: Inventario } } }
+    post: { summary: Crea un insumo, responses: { '201': { description: Insumo creado } } }
+  /inventory/{id}/adjust:
+    post:
+      summary: Registra entrada o salida justificada
+      parameters: [{ name: id, in: path, required: true, schema: { type: integer } }]
+      responses: { '200': { description: Existencia actualizada }, '409': { description: Stock insuficiente } }
+  /invoices:
+    get: { summary: Lista comprobantes, responses: { '200': { description: Facturas } } }
+    post: { summary: Emite comprobante local y deja timbrado fiscal pendiente, responses: { '201': { description: Factura creada } } }
+  /cash-closures:
+    get: { summary: Lista cierres para auditoría, responses: { '200': { description: Cierres } } }
+    post: { summary: Ejecuta cierre ciego y revela diferencia después del conteo, responses: { '201': { description: Cierre creado } } }
+  /settlements:
+    get: { summary: Lista liquidaciones profesionales, responses: { '200': { description: Liquidaciones } } }
+    post: { summary: Calcula honorarios del período, responses: { '201': { description: Liquidación creada } } }
+  /reports/general:
+    get: { summary: Reporte operativo y financiero, responses: { '200': { description: Indicadores } } }
+  /audit:
+    get: { summary: Bitácora de acciones sensibles, responses: { '200': { description: Eventos de auditoría } } }
+  /outbox:
+    get: { summary: Mensajes pendientes de proveedores externos, responses: { '200': { description: Cola transaccional } } }

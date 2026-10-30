@@ -82,6 +82,14 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 
 ## Comandos puntuales
 
+## Proyecto odontológico independiente
+
+- `Proyecto_Odontologia/`: sistema clínico-administrativo completo preparado para Docker y Render.
+- `Proyecto_Odontologia/frontend/`: React, TypeScript y Vite.
+- `Proyecto_Odontologia/backend/`: API Go con PostgreSQL, JWT, MFA, auditoría y pruebas.
+- `Proyecto_Odontologia/render.yaml`: Blueprint de Render configurado con `rootDir` para este monorepo.
+- `Proyecto_Odontologia/REQUIREMENTS_CHECKLIST.md`: trazabilidad del SRS odontológico.
+
 - `Taller8_PWA/`: base acumulativa del Taller 7 con instalación, catálogo offline y carrito persistente.
 - `Taller8_PWA/frontend/vite.config.ts`: manifest y service worker; `src/components/PwaControls.tsx`: instalación y actualización; `src/components/Ui.tsx`: piezas visuales compartidas.
 - `Taller8_PWA/backend/database/007_pwa.sql`: claves de compra para evitar duplicados.

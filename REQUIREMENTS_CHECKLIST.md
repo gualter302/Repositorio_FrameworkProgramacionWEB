@@ -213,6 +213,15 @@ Las casillas pendientes corresponden a verificaciones de despliegue, dispositivo
 
 ## Verificación y entrega
 
+## Proyecto odontológico
+
+- [x] Agregar `Proyecto_Odontologia/` como aplicación independiente dentro del repositorio.
+- [x] Implementar módulos de pacientes, agenda, expediente clínico, finanzas, inventario y reportes.
+- [x] Agregar PostgreSQL, JWT, MFA, auditoría, Docker y documentación OpenAPI.
+- [x] Configurar `Proyecto_Odontologia/render.yaml` con `rootDir` para desplegar desde este monorepo.
+- [x] Ejecutar pruebas del backend, lint y compilación del frontend.
+- [ ] Importar el Blueprint en Render y validar la URL pública con credenciales definitivas.
+
 - [x] Ejecutar `go test ./...` en el backend de la Fase 1.
 - [x] Ejecutar `npm run lint` después del cambio del frontend de la Fase 4.
 - [x] Ejecutar `npm run build` después del cambio del frontend de la Fase 4.

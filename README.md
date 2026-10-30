@@ -11,6 +11,7 @@
 | `Unidad2_Fase3_Cache_Redis/` | Fases 1 y 2 más caché del catálogo y la red con Redis |
 | `Unidad2_Fase4_Checkout_Concurrencia/` | Fases 1, 2 y 3 más checkout transaccional, stock y comisiones concurrentes |
 | `Taller7_Registro_Referidos/` | Fase 4 más registro con código de invitación, bcrypt, JWT y red propia |
+| `Proyecto_Odontologia/` | Sistema odontológico integral con React, Go, PostgreSQL, Docker y Blueprint para Render |
 
 Cada carpeta tiene su propio `README.md` con las instrucciones para ejecutarla.
 
