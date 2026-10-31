@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -83,6 +84,40 @@ func TestPatientCreatesVisibleMedicalAlerts(t *testing.T) {
 		t.Fatalf("se esperaban 3 alertas, recibido %+v", p.Alerts)
 	}
 }
+
+func TestPatientValidationRejectsInvalidIdentityData(t *testing.T) {
+	handler := newServer().routes()
+	token := loginToken(t, handler, "recepcion@sigodental.ec")
+	tests := []struct {
+		name string
+		body string
+	}{
+		{"números en nombres", `{"document":"0999999998","firstName":"Ana2","lastName":"Paz","birthDate":"1990-01-01","phone":"0990000000"}`},
+		{"identificación con letras", `{"document":"09ABC99998","firstName":"Ana","lastName":"Paz","birthDate":"1990-01-01","phone":"0990000000"}`},
+		{"teléfono corto", `{"document":"0999999998","firstName":"Ana","lastName":"Paz","birthDate":"1990-01-01","phone":"09900"}`},
+		{"fecha futura", `{"document":"0999999998","firstName":"Ana","lastName":"Paz","birthDate":"2990-01-01","phone":"0990000000"}`},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			response := httptest.NewRecorder()
+			handler.ServeHTTP(response, authorized(http.MethodPost, "/api/patients", token, test.body))
+			if response.Code != http.StatusUnprocessableEntity {
+				t.Fatalf("esperado 422, recibido %d: %s", response.Code, response.Body.String())
+			}
+		})
+	}
+}
+
+func TestOdontogramRejectsInvalidFDITooth(t *testing.T) {
+	handler := newServer().routes()
+	token := loginTokenWithOTP(t, handler, "odontologo@sigodental.ec")
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, authorized(http.MethodPost, "/api/clinical/1/odontogram", token, `{"tooth":19,"surface":"oclusal","condition":"Caries"}`))
+	if response.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("esperado 422 para diente FDI inválido, recibido %d: %s", response.Code, response.Body.String())
+	}
+}
+
 func TestAppointmentRejectsChairOverlap(t *testing.T) {
 	handler := newServer().routes()
 	token := loginToken(t, handler, "recepcion@sigodental.ec")
@@ -125,7 +160,7 @@ func TestClinicalAndFinancialFlow(t *testing.T) {
 	_ = json.NewDecoder(noteResponse.Body).Decode(&note)
 
 	amendmentResponse := httptest.NewRecorder()
-	handler.ServeHTTP(amendmentResponse, authorized(http.MethodPost, "/api/clinical/notes/1/amendments", clinicalToken, `{"reason":"Aclaración","content":"La lesión corresponde a la superficie oclusal"}`))
+	handler.ServeHTTP(amendmentResponse, authorized(http.MethodPost, "/api/clinical/notes/"+strconv.Itoa(note.ID)+"/amendments", clinicalToken, `{"reason":"Aclaración","content":"La lesión corresponde a la superficie oclusal"}`))
 	if amendmentResponse.Code != http.StatusCreated {
 		t.Fatalf("adenda: esperado 201, recibido %d: %s", amendmentResponse.Code, amendmentResponse.Body.String())
 	}
@@ -139,15 +174,17 @@ func TestClinicalAndFinancialFlow(t *testing.T) {
 	if planResponse.Code != http.StatusCreated {
 		t.Fatalf("plan: esperado 201, recibido %d: %s", planResponse.Code, planResponse.Body.String())
 	}
+	var createdPlan treatmentPlan
+	_ = json.NewDecoder(planResponse.Body).Decode(&createdPlan)
 
 	approveResponse := httptest.NewRecorder()
-	handler.ServeHTTP(approveResponse, authorized(http.MethodPatch, "/api/treatment-plans/1/status", receptionToken, `{"status":"Aprobado"}`))
+	handler.ServeHTTP(approveResponse, authorized(http.MethodPatch, "/api/treatment-plans/"+strconv.Itoa(createdPlan.ID)+"/status", receptionToken, `{"status":"Aprobado"}`))
 	if approveResponse.Code != http.StatusOK {
 		t.Fatalf("aprobación: esperado 200, recibido %d: %s", approveResponse.Code, approveResponse.Body.String())
 	}
 
 	invoiceResponse := httptest.NewRecorder()
-	handler.ServeHTTP(invoiceResponse, authorized(http.MethodPost, "/api/invoices", receptionToken, `{"treatmentPlanId":1,"paymentMethod":"Efectivo"}`))
+	handler.ServeHTTP(invoiceResponse, authorized(http.MethodPost, "/api/invoices", receptionToken, `{"treatmentPlanId":`+strconv.Itoa(createdPlan.ID)+`,"paymentMethod":"Efectivo"}`))
 	if invoiceResponse.Code != http.StatusCreated {
 		t.Fatalf("factura: esperado 201, recibido %d: %s", invoiceResponse.Code, invoiceResponse.Body.String())
 	}
@@ -155,6 +192,18 @@ func TestClinicalAndFinancialFlow(t *testing.T) {
 	_ = json.NewDecoder(invoiceResponse.Body).Decode(&invoice)
 	if invoice.Total != 97.75 || invoice.FiscalStatus != "Pendiente de integración" {
 		t.Fatalf("totales o estado fiscal inesperados: %+v", invoice)
+	}
+
+	duplicateInvoice := httptest.NewRecorder()
+	handler.ServeHTTP(duplicateInvoice, authorized(http.MethodPost, "/api/invoices", receptionToken, `{"treatmentPlanId":`+strconv.Itoa(createdPlan.ID)+`,"paymentMethod":"Efectivo"}`))
+	if duplicateInvoice.Code != http.StatusConflict {
+		t.Fatalf("factura duplicada: esperado 409, recibido %d: %s", duplicateInvoice.Code, duplicateInvoice.Body.String())
+	}
+
+	closuresResponse := httptest.NewRecorder()
+	handler.ServeHTTP(closuresResponse, authorized(http.MethodGet, "/api/cash-closures", receptionToken, ""))
+	if closuresResponse.Code != http.StatusOK {
+		t.Fatalf("consulta de cierres para recepción: esperado 200, recibido %d", closuresResponse.Code)
 	}
 }
 
@@ -182,5 +231,99 @@ func TestAdministratorRequiresSecondFactor(t *testing.T) {
 	}
 	if token := loginTokenWithOTP(t, handler, "admin@sigodental.ec"); token == "" {
 		t.Fatal("no se emitió JWT después del segundo factor")
+	}
+}
+
+func TestAssistantAccessMatchesLeastPrivilege(t *testing.T) {
+	handler := newServer().routes()
+	token := loginTokenWithOTP(t, handler, "asistente@sigodental.ec")
+
+	allowed := []struct {
+		method string
+		path   string
+		body   string
+		status int
+	}{
+		{http.MethodGet, "/api/patients", "", http.StatusOK},
+		{http.MethodGet, "/api/appointments", "", http.StatusOK},
+		{http.MethodGet, "/api/clinical/1", "", http.StatusOK},
+		{http.MethodGet, "/api/inventory", "", http.StatusOK},
+		{http.MethodPost, "/api/clinical/1/notes", `{"subjective":"Apoyo en consulta","objective":"Signos estables","assessment":"Sin novedad","plan":"Continuar atención"}`, http.StatusCreated},
+	}
+	for _, test := range allowed {
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, authorized(test.method, test.path, token, test.body))
+		if response.Code != test.status {
+			t.Fatalf("%s %s: esperado %d, recibido %d: %s", test.method, test.path, test.status, response.Code, response.Body.String())
+		}
+	}
+
+	denied := []struct {
+		method string
+		path   string
+		body   string
+	}{
+		{http.MethodPost, "/api/patients", `{}`},
+		{http.MethodPost, "/api/appointments", `{}`},
+		{http.MethodPost, "/api/clinical/1/odontogram", `{"tooth":16,"surface":"oclusal","condition":"Caries"}`},
+		{http.MethodPost, "/api/inventory", `{}`},
+	}
+	for _, test := range denied {
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, authorized(test.method, test.path, token, test.body))
+		if response.Code != http.StatusForbidden {
+			t.Fatalf("%s %s: esperado 403, recibido %d: %s", test.method, test.path, response.Code, response.Body.String())
+		}
+	}
+}
+
+func TestDefaultStateIncludesDemonstrationDataForEveryRole(t *testing.T) {
+	state := defaultState()
+	if len(state.Users) != 5 {
+		t.Fatalf("se esperaban cinco perfiles de prueba, recibido %d", len(state.Users))
+	}
+	if len(state.Odontogram) == 0 || len(state.Notes) == 0 || len(state.Plans) < 2 || len(state.Invoices) == 0 || len(state.Closures) == 0 || len(state.Settlements) == 0 || len(state.Audit) == 0 || len(state.Outbox) == 0 {
+		t.Fatalf("faltan datos de demostración: odontograma=%d notas=%d planes=%d facturas=%d cierres=%d liquidaciones=%d auditoría=%d salida=%d", len(state.Odontogram), len(state.Notes), len(state.Plans), len(state.Invoices), len(state.Closures), len(state.Settlements), len(state.Audit), len(state.Outbox))
+	}
+}
+
+func TestExpectedCashDoesNotDoubleCountInvoice(t *testing.T) {
+	app := newServer()
+	handler := app.routes()
+	admin := loginTokenWithOTP(t, handler, "admin@sigodental.ec")
+	clinicalToken := loginTokenWithOTP(t, handler, "odontologo@sigodental.ec")
+
+	planBody := `{"patientId":1,"items":[{"procedure":"Restauración","phase":1,"sessions":1,"professionalFee":100,"laboratoryCost":0,"discount":0}]}`
+	planResponse := httptest.NewRecorder()
+	handler.ServeHTTP(planResponse, authorized(http.MethodPost, "/api/treatment-plans", clinicalToken, planBody))
+	var createdPlan treatmentPlan
+	_ = json.NewDecoder(planResponse.Body).Decode(&createdPlan)
+	handler.ServeHTTP(httptest.NewRecorder(), authorized(http.MethodPatch, "/api/treatment-plans/"+strconv.Itoa(createdPlan.ID)+"/status", admin, `{"status":"Aprobado"}`))
+	invoiceResponse := httptest.NewRecorder()
+	handler.ServeHTTP(invoiceResponse, authorized(http.MethodPost, "/api/invoices", admin, `{"treatmentPlanId":`+strconv.Itoa(createdPlan.ID)+`,"paymentMethod":"Efectivo"}`))
+	if invoiceResponse.Code != http.StatusCreated {
+		t.Fatalf("factura: esperado 201, recibido %d: %s", invoiceResponse.Code, invoiceResponse.Body.String())
+	}
+
+	closureResponse := httptest.NewRecorder()
+	handler.ServeHTTP(closureResponse, authorized(http.MethodPost, "/api/cash-closures", admin, `{"declaredCash":115}`))
+	if closureResponse.Code != http.StatusCreated {
+		t.Fatalf("cierre: esperado 201, recibido %d: %s", closureResponse.Code, closureResponse.Body.String())
+	}
+	var closure cashClosure
+	_ = json.NewDecoder(closureResponse.Body).Decode(&closure)
+	if closure.ExpectedCash != 115 || closure.Difference != 0 {
+		t.Fatalf("el efectivo esperado debe coincidir con la factura sin duplicarse: %+v", closure)
+	}
+}
+
+func TestUpdateMissingPatientReturnsNotFound(t *testing.T) {
+	handler := newServer().routes()
+	token := loginToken(t, handler, "recepcion@sigodental.ec")
+	body := `{"document":"0999999998","firstName":"Ana","lastName":"Paz","birthDate":"1990-01-01","phone":"0990000000"}`
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, authorized(http.MethodPut, "/api/patients/999", token, body))
+	if response.Code != http.StatusNotFound {
+		t.Fatalf("paciente inexistente: esperado 404, recibido %d: %s", response.Code, response.Body.String())
 	}
 }

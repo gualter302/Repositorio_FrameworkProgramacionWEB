@@ -344,13 +344,21 @@ func (s *server) dashboard(w http.ResponseWriter, _ *http.Request) {
 	defer s.mu.RUnlock()
 	today := time.Now().Format("2006-01-02")
 	appointments, waiting, alerts := 0, 0, 0
+	next := []appointment{}
 	for _, a := range s.state.Appointments {
 		if a.Start.Format("2006-01-02") == today {
 			appointments++
 			if a.Status == "En Sala de Espera" {
 				waiting++
 			}
+			if a.Status != "Cancelado" && a.Status != "No Asistió" && a.Status != "Atendido" {
+				next = append(next, a)
+			}
 		}
+	}
+	slices.SortFunc(next, func(a, b appointment) int { return a.Start.Compare(b.Start) })
+	if len(next) > 3 {
+		next = next[:3]
 	}
 	for _, p := range s.state.Patients {
 		if len(p.Alerts) > 0 {
@@ -363,36 +371,13 @@ func (s *server) dashboard(w http.ResponseWriter, _ *http.Request) {
 			revenue += invoice.Total
 		}
 	}
-	writeJSON(w, 200, map[string]any{"patients": len(s.state.Patients), "todayAppointments": appointments, "waiting": waiting, "criticalAlerts": alerts, "estimatedRevenue": revenue, "lowStock": s.lowStockCountLocked(), "pendingInvoices": s.pendingInvoicesLocked()})
+	writeJSON(w, 200, map[string]any{"patients": len(s.state.Patients), "todayAppointments": appointments, "waiting": waiting, "criticalAlerts": alerts, "estimatedRevenue": revenue, "lowStock": s.lowStockCountLocked(), "pendingInvoices": s.pendingInvoicesLocked(), "nextAppointments": next})
 }
 
 func (s *server) listPatients(w http.ResponseWriter, _ *http.Request) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	writeJSON(w, 200, s.state.Patients)
-}
-func validatePatient(p *patient) error {
-	p.Document = strings.TrimSpace(p.Document)
-	p.FirstName = strings.TrimSpace(p.FirstName)
-	p.LastName = strings.TrimSpace(p.LastName)
-	if p.Document == "" || p.FirstName == "" || p.LastName == "" || p.BirthDate == "" || p.Phone == "" {
-		return errors.New("complete identificación, nombres, fecha de nacimiento y teléfono")
-	}
-	p.Alerts = nil
-	for _, a := range p.Allergies {
-		if strings.TrimSpace(a) != "" {
-			p.Alerts = append(p.Alerts, "Alergia: "+strings.TrimSpace(a))
-		}
-	}
-	for _, c := range p.Conditions {
-		if strings.TrimSpace(c) != "" {
-			p.Alerts = append(p.Alerts, "Condición: "+strings.TrimSpace(c))
-		}
-	}
-	if p.Anticoagulant {
-		p.Alerts = append(p.Alerts, "Paciente anticoagulado")
-	}
-	return nil
 }
 func (s *server) createPatient(w http.ResponseWriter, r *http.Request) {
 	var p patient
@@ -446,12 +431,26 @@ func (s *server) updatePatient(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var p patient
-	if decode(r, &p) != nil || validatePatient(&p) != nil {
-		fail(w, 422, "VALIDATION_ERROR", "La ficha está incompleta")
+	if decode(r, &p) != nil {
+		fail(w, 400, "INVALID_JSON", "La ficha no es válida")
+		return
+	}
+	if err := validatePatient(&p); err != nil {
+		fail(w, 422, "VALIDATION_ERROR", err.Error())
 		return
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if _, ok := s.patientExistsLocked(id); !ok {
+		fail(w, 404, "NOT_FOUND", "Paciente no encontrado")
+		return
+	}
+	for _, patient := range s.state.Patients {
+		if patient.ID != id && patient.Document == p.Document {
+			fail(w, 409, "DOCUMENT_EXISTS", "Ya existe un paciente con esa identificación")
+			return
+		}
+	}
 	for i, item := range s.state.Patients {
 		if item.ID == id {
 			p.ID = id
@@ -479,7 +478,11 @@ func (s *server) createAppointment(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, "INVALID_JSON", "La cita no es válida")
 		return
 	}
-	if a.PatientID < 1 || a.Dentist == "" || a.Chair == "" || a.Reason == "" || a.Start.IsZero() || a.End.IsZero() || !a.End.After(a.Start) {
+	a.Dentist = strings.TrimSpace(a.Dentist)
+	a.Chair = strings.TrimSpace(a.Chair)
+	a.Reason = strings.TrimSpace(a.Reason)
+	allowedChairs := []string{"Sillón 1", "Sillón 2", "Sillón 3"}
+	if a.PatientID < 1 || len([]rune(a.Dentist)) < 3 || len([]rune(a.Dentist)) > 80 || !slices.Contains(allowedChairs, a.Chair) || len([]rune(a.Reason)) < 3 || len([]rune(a.Reason)) > 120 || a.Start.IsZero() || a.End.IsZero() || !a.End.After(a.Start) || a.End.Sub(a.Start) > 12*time.Hour {
 		fail(w, 422, "VALIDATION_ERROR", "Complete los datos y use un horario válido")
 		return
 	}

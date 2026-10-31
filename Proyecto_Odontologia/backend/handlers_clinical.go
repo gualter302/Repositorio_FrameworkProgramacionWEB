@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"net/http"
 	"os"
 	"slices"
@@ -24,13 +25,22 @@ type planStatusRequest struct {
 	Status          string `json:"status"`
 	ApprovedItemIDs []int  `json:"approvedItemIds"`
 }
+type periodontalRequest struct {
+	Tooth     int   `json:"tooth"`
+	Depths    []int `json:"depths"`
+	Margin    int   `json:"margin"`
+	Furcation int   `json:"furcation"`
+	Mobility  int   `json:"mobility"`
+	Bleeding  bool  `json:"bleeding"`
+}
 
 func (s *server) registerClinicalRoutes(mux *http.ServeMux) {
 	clinical := []string{"administrador", "odontologo"}
+	noteWriters := append(clinical, "asistente")
 	mux.Handle("GET /api/clinical/{id}", s.auth(http.HandlerFunc(s.getClinicalRecord), append(clinical, "asistente")...))
 	mux.Handle("POST /api/clinical/{id}/odontogram", s.auth(http.HandlerFunc(s.createOdontogramEntry), clinical...))
 	mux.Handle("POST /api/clinical/{id}/periodontogram", s.auth(http.HandlerFunc(s.createPeriodontalRecord), clinical...))
-	mux.Handle("POST /api/clinical/{id}/notes", s.auth(http.HandlerFunc(s.createClinicalNote), clinical...))
+	mux.Handle("POST /api/clinical/{id}/notes", s.auth(http.HandlerFunc(s.createClinicalNote), noteWriters...))
 	mux.Handle("POST /api/clinical/notes/{id}/amendments", s.auth(http.HandlerFunc(s.createAmendment), clinical...))
 	mux.Handle("POST /api/clinical/{id}/consents", s.auth(http.HandlerFunc(s.createConsent), append(clinical, "recepcionista")...))
 	mux.Handle("GET /api/treatment-plans", s.auth(http.HandlerFunc(s.listTreatmentPlans)))
@@ -105,7 +115,9 @@ func (s *server) createOdontogramEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	surfaces := map[string]bool{"mesial": true, "distal": true, "oclusal": true, "incisal": true, "vestibular": true, "lingual": true, "palatino": true, "completo": true}
-	if entry.Tooth < 11 || entry.Tooth > 85 || !surfaces[strings.ToLower(entry.Surface)] || entry.Condition == "" {
+	entry.Condition = strings.TrimSpace(entry.Condition)
+	entry.Notes = strings.TrimSpace(entry.Notes)
+	if !validFDITooth(entry.Tooth) || !surfaces[strings.ToLower(entry.Surface)] || entry.Condition == "" || len([]rune(entry.Condition)) > 100 || len([]rune(entry.Notes)) > 500 {
 		fail(w, 422, "VALIDATION_ERROR", "Diente, superficie o condición inválidos")
 		return
 	}
@@ -139,21 +151,31 @@ func (s *server) createPeriodontalRecord(w http.ResponseWriter, r *http.Request)
 		fail(w, 400, "INVALID_ID", "Paciente inválido")
 		return
 	}
-	var record periodontalRecord
-	if decode(r, &record) != nil {
+	var req periodontalRequest
+	if decode(r, &req) != nil {
 		fail(w, 400, "INVALID_JSON", "Registro inválido")
 		return
 	}
-	if record.Tooth < 11 || record.Tooth > 85 {
+	if !validFDITooth(req.Tooth) {
 		fail(w, 422, "VALIDATION_ERROR", "Diente inválido")
 		return
 	}
-	for _, depth := range record.Depths {
+	if len(req.Depths) != 6 {
+		fail(w, 422, "VALIDATION_ERROR", "Ingrese exactamente seis profundidades")
+		return
+	}
+	for _, depth := range req.Depths {
 		if depth < 0 || depth > 15 {
 			fail(w, 422, "VALIDATION_ERROR", "Las profundidades deben estar entre 0 y 15 mm")
 			return
 		}
 	}
+	if req.Margin < -15 || req.Margin > 15 || req.Furcation < 0 || req.Furcation > 3 || req.Mobility < 0 || req.Mobility > 3 {
+		fail(w, 422, "VALIDATION_ERROR", "Los valores periodontales están fuera del rango permitido")
+		return
+	}
+	record := periodontalRecord{Tooth: req.Tooth, Margin: req.Margin, Furcation: req.Furcation, Mobility: req.Mobility, Bleeding: req.Bleeding}
+	copy(record.Depths[:], req.Depths)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if _, ok := s.patientExistsLocked(patientID); !ok {
@@ -184,7 +206,11 @@ func (s *server) createClinicalNote(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, "INVALID_JSON", "Nota inválida")
 		return
 	}
-	if note.Subjective == "" || note.Objective == "" || note.Assessment == "" || note.Plan == "" {
+	note.Subjective = strings.TrimSpace(note.Subjective)
+	note.Objective = strings.TrimSpace(note.Objective)
+	note.Assessment = strings.TrimSpace(note.Assessment)
+	note.Plan = strings.TrimSpace(note.Plan)
+	if note.Subjective == "" || note.Objective == "" || note.Assessment == "" || note.Plan == "" || len([]rune(note.Subjective)) > 2000 || len([]rune(note.Objective)) > 2000 || len([]rune(note.Assessment)) > 2000 || len([]rune(note.Plan)) > 2000 {
 		fail(w, 422, "VALIDATION_ERROR", "Complete los cuatro apartados SOAP")
 		return
 	}
@@ -252,11 +278,16 @@ func (s *server) createConsent(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, "INVALID_JSON", "Consentimiento inválido")
 		return
 	}
+	req.Procedure = strings.TrimSpace(req.Procedure)
+	req.Risks = strings.TrimSpace(req.Risks)
+	req.PatientName = strings.TrimSpace(req.PatientName)
+	req.SignatureData = strings.TrimSpace(req.SignatureData)
+	req.OTP = strings.TrimSpace(req.OTP)
 	expected := os.Getenv("CONSENT_OTP")
 	if expected == "" {
 		expected = "654321"
 	}
-	if req.Procedure == "" || req.PatientName == "" || len(req.SignatureData) < 3 || req.OTP != expected {
+	if len([]rune(req.Procedure)) < 3 || len([]rune(req.Procedure)) > 160 || len([]rune(req.Risks)) < 3 || len([]rune(req.Risks)) > 2000 || !validPersonName(req.PatientName) || len([]rune(req.SignatureData)) < 3 || len([]rune(req.SignatureData)) > 120 || req.OTP != expected {
 		fail(w, 422, "VALIDATION_ERROR", "Procedimiento, firma o código de validación inválidos")
 		return
 	}
@@ -306,14 +337,13 @@ func (s *server) createTreatmentPlan(w http.ResponseWriter, r *http.Request) {
 	plan.CreatedAt = time.Now()
 	plan.Total = 0
 	for i := range plan.Items {
+		plan.Items[i].Procedure = strings.TrimSpace(plan.Items[i].Procedure)
+		if len([]rune(plan.Items[i].Procedure)) < 3 || len([]rune(plan.Items[i].Procedure)) > 160 || plan.Items[i].Phase < 1 || plan.Items[i].Phase > 20 || plan.Items[i].Sessions < 1 || plan.Items[i].Sessions > 100 || !finiteNonNegative(plan.Items[i].ProfessionalFee) || !finiteNonNegative(plan.Items[i].LaboratoryCost) || !finiteNonNegative(plan.Items[i].Discount) || plan.Items[i].Discount > plan.Items[i].ProfessionalFee+plan.Items[i].LaboratoryCost || math.IsNaN(plan.Total) {
+			fail(w, 422, "VALIDATION_ERROR", "Los datos del procedimiento no son válidos")
+			return
+		}
 		plan.Items[i].ID = s.state.Counters.PlanItem
 		s.state.Counters.PlanItem++
-		if plan.Items[i].Phase < 1 {
-			plan.Items[i].Phase = 1
-		}
-		if plan.Items[i].Sessions < 1 {
-			plan.Items[i].Sessions = 1
-		}
 		plan.Items[i].Status = "Pendiente"
 		line := plan.Items[i].ProfessionalFee + plan.Items[i].LaboratoryCost - plan.Items[i].Discount
 		if line < 0 {

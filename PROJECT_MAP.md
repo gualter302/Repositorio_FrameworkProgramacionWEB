@@ -88,6 +88,7 @@ estructura real del repositorio y reemplazan los nombres generales `Unidad1_Fron
 - `Proyecto_Odontologia/frontend/`: React, TypeScript y Vite.
 - `Proyecto_Odontologia/backend/`: API Go con PostgreSQL, JWT, MFA, auditoría y pruebas.
 - `Proyecto_Odontologia/render.yaml`: Blueprint de Render configurado con `rootDir` para este monorepo.
+- `Proyecto_Odontologia/GUIA_RENDER.md`: publicación, comprobación y actualización en Render.
 - `Proyecto_Odontologia/REQUIREMENTS_CHECKLIST.md`: trazabilidad del SRS odontológico.
 
 - `Taller8_PWA/`: base acumulativa del Taller 7 con instalación, catálogo offline y carrito persistente.

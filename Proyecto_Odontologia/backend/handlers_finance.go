@@ -27,16 +27,16 @@ type settlementRequest struct {
 }
 
 func (s *server) registerFinanceRoutes(mux *http.ServeMux) {
-	mux.Handle("GET /api/inventory", s.auth(http.HandlerFunc(s.listInventory), "administrador", "odontologo", "recepcionista", "auditor"))
+	mux.Handle("GET /api/inventory", s.auth(http.HandlerFunc(s.listInventory), "administrador", "odontologo", "recepcionista", "asistente", "auditor"))
 	mux.Handle("POST /api/inventory", s.auth(http.HandlerFunc(s.createInventoryItem), "administrador"))
 	mux.Handle("POST /api/inventory/{id}/adjust", s.auth(http.HandlerFunc(s.adjustInventory), "administrador"))
 	mux.Handle("GET /api/invoices", s.auth(http.HandlerFunc(s.listInvoices), "administrador", "recepcionista", "auditor"))
 	mux.Handle("POST /api/invoices", s.auth(http.HandlerFunc(s.createInvoice), "administrador", "recepcionista"))
 	mux.Handle("POST /api/cash-closures", s.auth(http.HandlerFunc(s.createCashClosure), "administrador", "recepcionista"))
-	mux.Handle("GET /api/cash-closures", s.auth(http.HandlerFunc(s.listCashClosures), "administrador", "auditor"))
+	mux.Handle("GET /api/cash-closures", s.auth(http.HandlerFunc(s.listCashClosures), "administrador", "recepcionista", "auditor"))
 	mux.Handle("POST /api/settlements", s.auth(http.HandlerFunc(s.createSettlement), "administrador", "auditor"))
 	mux.Handle("GET /api/settlements", s.auth(http.HandlerFunc(s.listSettlements), "administrador", "auditor"))
-	mux.Handle("GET /api/reports/general", s.auth(http.HandlerFunc(s.generalReport), "administrador", "auditor"))
+	mux.Handle("GET /api/reports/general", s.auth(http.HandlerFunc(s.generalReport), "administrador", "recepcionista", "auditor"))
 	mux.Handle("GET /api/audit", s.auth(http.HandlerFunc(s.listAudit), "administrador", "auditor"))
 	mux.Handle("GET /api/outbox", s.auth(http.HandlerFunc(s.listOutbox), "administrador", "auditor"))
 }
@@ -66,12 +66,24 @@ func (s *server) listInventory(w http.ResponseWriter, _ *http.Request) {
 }
 func (s *server) createInventoryItem(w http.ResponseWriter, r *http.Request) {
 	var item inventoryItem
-	if decode(r, &item) != nil || strings.TrimSpace(item.Name) == "" || item.Unit == "" || item.Stock < 0 || item.Minimum < 0 {
+	if decode(r, &item) != nil {
+		fail(w, 400, "INVALID_JSON", "Artículo de inventario inválido")
+		return
+	}
+	item.Name = strings.TrimSpace(item.Name)
+	item.Unit = strings.TrimSpace(item.Unit)
+	if len([]rune(item.Name)) < 2 || len([]rune(item.Name)) > 100 || len([]rune(item.Unit)) < 1 || len([]rune(item.Unit)) > 30 || !finiteNonNegative(item.Stock) || !finiteNonNegative(item.Minimum) || !finiteNonNegative(item.UnitCost) {
 		fail(w, 422, "VALIDATION_ERROR", "Artículo de inventario inválido")
 		return
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	for _, current := range s.state.Inventory {
+		if strings.EqualFold(current.Name, item.Name) {
+			fail(w, 409, "ITEM_EXISTS", "Ya existe un insumo con ese nombre")
+			return
+		}
+	}
 	item.ID = s.state.Counters.Inventory
 	s.state.Counters.Inventory++
 	item.UpdatedAt = time.Now()
@@ -90,7 +102,7 @@ func (s *server) adjustInventory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var req inventoryAdjustment
-	if decode(r, &req) != nil || req.Quantity == 0 || strings.TrimSpace(req.Reason) == "" {
+	if decode(r, &req) != nil || req.Quantity == 0 || math.IsNaN(req.Quantity) || math.IsInf(req.Quantity, 0) || len([]rune(strings.TrimSpace(req.Reason))) < 3 || len([]rune(strings.TrimSpace(req.Reason))) > 160 {
 		fail(w, 422, "VALIDATION_ERROR", "Indique cantidad y motivo")
 		return
 	}
@@ -162,18 +174,23 @@ func (s *server) createInvoice(w http.ResponseWriter, r *http.Request) {
 		fail(w, 404, "NOT_FOUND", "Presupuesto no encontrado")
 		return
 	}
+	for _, current := range s.state.Invoices {
+		if current.TreatmentPlanID == plan.ID && current.Status != "Anulada" {
+			fail(w, 409, "PLAN_ALREADY_INVOICED", "El presupuesto ya tiene una factura emitida")
+			return
+		}
+	}
 	if !strings.HasPrefix(plan.Status, "Aprobado") {
 		fail(w, 409, "PLAN_NOT_APPROVED", "El presupuesto aún no está aprobado")
 		return
 	}
 	tax := plan.Total * 0.15
 	total := plan.Total + tax
-	if len(req.Payments) == 0 {
-		req.Payments = []paymentEntry{{Method: req.PaymentMethod, Amount: total}}
-	}
+	applyPayments(&req, total)
 	paid := 0.0
+	allowedPayments := map[string]bool{"Efectivo": true, "Tarjeta": true, "Transferencia": true}
 	for _, payment := range req.Payments {
-		if payment.Method == "" || payment.Amount <= 0 {
+		if !allowedPayments[payment.Method] || payment.Amount <= 0 || math.IsNaN(payment.Amount) || math.IsInf(payment.Amount, 0) {
 			fail(w, 422, "VALIDATION_ERROR", "Las formas de pago no son válidas")
 			return
 		}
@@ -198,17 +215,24 @@ func (s *server) createInvoice(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 201, item)
 }
 
+// applyPayments completa la forma de pago. Si el cliente no detalla el desglose,
+// el total se registra como un único pago entero para no sumarlo dos veces al
+// calcular el efectivo esperado en el cierre de caja.
+func applyPayments(req *invoiceRequest, total float64) {
+	if len(req.Payments) == 0 {
+		req.Payments = []paymentEntry{{Method: req.PaymentMethod, Amount: total}}
+	}
+}
+
 func (s *server) expectedCashLocked(date string) float64 {
 	total := 0.0
 	for _, item := range s.state.Invoices {
-		if item.CreatedAt.Format("2006-01-02") == date && item.Status != "Anulada" {
-			if len(item.Payments) == 0 && strings.EqualFold(item.PaymentMethod, "Efectivo") {
-				total += item.Total
-			}
-			for _, payment := range item.Payments {
-				if strings.EqualFold(payment.Method, "Efectivo") {
-					total += payment.Amount
-				}
+		if item.CreatedAt.Format("2006-01-02") != date || item.Status == "Anulada" {
+			continue
+		}
+		for _, payment := range item.Payments {
+			if strings.EqualFold(payment.Method, "Efectivo") {
+				total += payment.Amount
 			}
 		}
 	}
@@ -216,7 +240,7 @@ func (s *server) expectedCashLocked(date string) float64 {
 }
 func (s *server) createCashClosure(w http.ResponseWriter, r *http.Request) {
 	var req closureRequest
-	if decode(r, &req) != nil || req.DeclaredCash < 0 {
+	if decode(r, &req) != nil || !finiteNonNegative(req.DeclaredCash) {
 		fail(w, 422, "VALIDATION_ERROR", "El conteo físico no es válido")
 		return
 	}
@@ -248,7 +272,7 @@ func (s *server) listCashClosures(w http.ResponseWriter, _ *http.Request) {
 
 func (s *server) createSettlement(w http.ResponseWriter, r *http.Request) {
 	var req settlementRequest
-	if decode(r, &req) != nil || req.Professional == "" || req.Period == "" || req.Percentage <= 0 || req.Percentage > 100 {
+	if decode(r, &req) != nil || strings.TrimSpace(req.Professional) == "" || strings.TrimSpace(req.Period) == "" || req.Percentage <= 0 || req.Percentage > 100 || math.IsNaN(req.Percentage) || math.IsInf(req.Percentage, 0) {
 		fail(w, 422, "VALIDATION_ERROR", "Liquidación inválida")
 		return
 	}
