@@ -24,6 +24,8 @@
 - [~] RNF-03 Concurrencia: bloqueos internos seguros; falta prueba externa de 150 usuarios.
 - [~] RNF-04 TLS en tránsito mediante Render; el cifrado en reposo debe confirmarse con el plan final contratado.
 - [x] RNF-05 RBAC, JWT, MFA y cierre a los 15 minutos.
+- [x] Accesos de demostración para Administrador, Recepción/Caja, Odontólogo, Asistente Dental y Auditor/Contador.
+- [x] Datos clínicos, operativos y financieros de prueba disponibles desde una base nueva.
 - [x] RNF-06 Auditoría de operaciones sensibles con usuario, fecha e IP.
 - [x] RNF-07 Diseño responsive para escritorio, laptop y tablet.
 - [~] RNF-08 Navegadores: compilación estándar; falta matriz manual en cuatro navegadores.

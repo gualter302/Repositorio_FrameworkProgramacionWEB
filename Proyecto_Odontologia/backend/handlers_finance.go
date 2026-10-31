@@ -27,7 +27,7 @@ type settlementRequest struct {
 }
 
 func (s *server) registerFinanceRoutes(mux *http.ServeMux) {
-	mux.Handle("GET /api/inventory", s.auth(http.HandlerFunc(s.listInventory), "administrador", "odontologo", "recepcionista", "auditor"))
+	mux.Handle("GET /api/inventory", s.auth(http.HandlerFunc(s.listInventory), "administrador", "odontologo", "recepcionista", "asistente", "auditor"))
 	mux.Handle("POST /api/inventory", s.auth(http.HandlerFunc(s.createInventoryItem), "administrador"))
 	mux.Handle("POST /api/inventory/{id}/adjust", s.auth(http.HandlerFunc(s.adjustInventory), "administrador"))
 	mux.Handle("GET /api/invoices", s.auth(http.HandlerFunc(s.listInvoices), "administrador", "recepcionista", "auditor"))

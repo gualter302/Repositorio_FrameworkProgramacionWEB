@@ -36,10 +36,11 @@ type periodontalRequest struct {
 
 func (s *server) registerClinicalRoutes(mux *http.ServeMux) {
 	clinical := []string{"administrador", "odontologo"}
+	noteWriters := append(clinical, "asistente")
 	mux.Handle("GET /api/clinical/{id}", s.auth(http.HandlerFunc(s.getClinicalRecord), append(clinical, "asistente")...))
 	mux.Handle("POST /api/clinical/{id}/odontogram", s.auth(http.HandlerFunc(s.createOdontogramEntry), clinical...))
 	mux.Handle("POST /api/clinical/{id}/periodontogram", s.auth(http.HandlerFunc(s.createPeriodontalRecord), clinical...))
-	mux.Handle("POST /api/clinical/{id}/notes", s.auth(http.HandlerFunc(s.createClinicalNote), clinical...))
+	mux.Handle("POST /api/clinical/{id}/notes", s.auth(http.HandlerFunc(s.createClinicalNote), noteWriters...))
 	mux.Handle("POST /api/clinical/notes/{id}/amendments", s.auth(http.HandlerFunc(s.createAmendment), clinical...))
 	mux.Handle("POST /api/clinical/{id}/consents", s.auth(http.HandlerFunc(s.createConsent), append(clinical, "recepcionista")...))
 	mux.Handle("GET /api/treatment-plans", s.auth(http.HandlerFunc(s.listTreatmentPlans)))

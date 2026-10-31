@@ -56,9 +56,25 @@ Contraseña común: `Odonto2026!`.
 | Administrador | `admin@sigodental.ec` | `123456` |
 | Recepción | `recepcion@sigodental.ec` | No requerido |
 | Odontólogo | `odontologo@sigodental.ec` | `123456` |
+| Asistente dental | `asistente@sigodental.ec` | `123456` |
 | Auditor | `auditor@sigodental.ec` | `123456` |
 
 El código local de consentimiento es `654321`. En Render ambos códigos se solicitan como secretos y deben cambiarse.
+
+Una base nueva incluye pacientes con alertas, citas en distintos estados, odontograma,
+periodontograma, evolución SOAP, consentimiento, dos presupuestos, una factura, un cierre
+histórico, una liquidación, inventario, notificaciones y auditoría. De esta forma cada perfil
+puede demostrar sus funciones desde el primer inicio sin registrar información real.
+
+### Accesos por perfil
+
+| Perfil | Accesos de demostración |
+|---|---|
+| Administrador | Todos los módulos y operaciones. |
+| Recepción / Caja | Pacientes, agenda, caja, facturación, inventario de consulta y reporte general. |
+| Odontólogo | Pacientes, agenda, expediente clínico, tratamientos e inventario de consulta. |
+| Asistente dental | Consulta de pacientes, agenda, expediente e inventario; registro de notas SOAP de apoyo. |
+| Auditor / Contador | Caja, facturación, liquidaciones, inventario, reportes, auditoría y notificaciones. |
 
 ## Pruebas y calidad
 
@@ -75,10 +91,12 @@ npm run build
 
 El repositorio contiene un Blueprint `render.yaml` y un `Dockerfile` de varias etapas. Render construirá React, compilará Go, creará PostgreSQL y conectará `DATABASE_URL` automáticamente.
 
+La guía detallada de publicación y verificación está en [`GUIA_RENDER.md`](GUIA_RENDER.md).
+
 1. Suba este repositorio a GitHub con la carpeta `Proyecto_Odontologia/` incluida.
 2. En Render seleccione **New > Blueprint**, conecte el repositorio y use `Proyecto_Odontologia/render.yaml` como ruta del Blueprint.
 3. Confirme el servicio `sigo-dental` y la base `sigo-dental-db`.
-4. Cuando Render lo solicite, asigne valores distintos a `MFA_DEMO_CODE` y `CONSENT_OTP`.
+4. Para la revisión académica use `123456` en `MFA_DEMO_CODE` y `654321` en `CONSENT_OTP`; cámbielos antes de usar información real.
 5. Espere a que `/api/health` informe `status: ok`.
 6. Ingrese con las cuentas de demostración y cambie sus credenciales antes de usar datos reales.
 
@@ -103,6 +121,7 @@ Antes de producción deben definirse:
 - `database/init.sql`: modelo relacional de referencia.
 - `docs/openapi.yaml`: contrato OpenAPI 3.
 - `Dockerfile`, `docker-compose.yml`, `render.yaml`: ejecución y despliegue.
+- `GUIA_RENDER.md`: pasos para publicar, comprobar y actualizar el sistema en Render.
 - `REQUIREMENTS_CHECKLIST.md`: trazabilidad requisito por requisito.
 - `PROGRESO.md`: estado, límites y siguiente trabajo externo.
 

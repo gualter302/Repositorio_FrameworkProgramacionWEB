@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Banknote, CheckCircle2, FileText, LockKeyhole, Receipt, XCircle } from 'lucide-react'
 import { api, type CashClosure, type Invoice, type Settlement, type TreatmentPlan } from '../api'
 
@@ -17,8 +17,8 @@ export default function FinancePage({ role }: { role: string }) {
   const [error, setError] = useState('')
   const canManage = role === 'administrador' || role === 'recepcionista'
   const canSettle = role === 'administrador' || role === 'auditor'
-  const load = () => Promise.all([api.plans(), api.invoices(), api.cashClosures(), canSettle ? api.settlements() : Promise.resolve<Settlement[]>([])]).then(([planList, invoiceList, closureList, settlementList]) => { setPlans(planList); setInvoices(invoiceList); setClosures(closureList); setSettlements(settlementList) }).catch(reason => setError(reason.message))
-  useEffect(() => { void load() }, [])
+  const load = useCallback(() => Promise.all([api.plans(), api.invoices(), api.cashClosures(), canSettle ? api.settlements() : Promise.resolve<Settlement[]>([])]).then(([planList, invoiceList, closureList, settlementList]) => { setPlans(planList); setInvoices(invoiceList); setClosures(closureList); setSettlements(settlementList) }).catch(reason => setError(reason.message)), [canSettle])
+  useEffect(() => { void load() }, [load])
   const act = async (action: () => Promise<unknown>, successMessage: string) => { setError(''); setMessage(''); try { await action(); setMessage(successMessage); await load() } catch (reason) { setError(reason instanceof Error ? reason.message : 'No se pudo completar') } }
   const today = new Date().toISOString().slice(0, 10)
   const todayClosure = closures.find(item => item.date === today)

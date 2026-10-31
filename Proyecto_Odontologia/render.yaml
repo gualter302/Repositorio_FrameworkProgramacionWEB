@@ -29,5 +29,6 @@ databases:
     databaseName: sigodental
     user: sigodental
     postgresMajorVersion: "18"
+    plan: free
     region: oregon
     ipAllowList: []

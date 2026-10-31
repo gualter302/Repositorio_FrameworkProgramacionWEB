@@ -7,7 +7,7 @@
 - [x] Pacientes, filiación, anamnesis y alertas.
 - [x] Agenda diaria, profesionales, sillones y estados de cita.
 - [x] Bloqueo de superposición por sillón.
-- [x] Dashboard y navegación por roles.
+- [x] Dashboard y navegación para los cinco roles del SRS.
 
 ## Fase 2 - Core clínico
 
@@ -51,9 +51,9 @@
 
 ## Siguiente paso recomendado
 
-1. Revisar la aplicación local con los cuatro perfiles.
-2. Crear el repositorio remoto y subir la rama principal cuando el propietario lo autorice.
-3. Importar `render.yaml` como Blueprint.
-4. Realizar UAT y registrar incidencias reales.
+1. Revisar la aplicación local con los cinco perfiles y sus datos de demostración.
+2. Fusionar el PR aprobado en `main`.
+3. Importar `render.yaml` como Blueprint siguiendo `GUIA_RENDER.md`.
+4. Realizar UAT en la URL pública y registrar incidencias reales.
 5. Elegir proveedores externos antes de activar datos clínicos reales.
 

@@ -81,6 +81,7 @@ func defaultState() appState {
 		panic(err)
 	}
 	now := time.Now()
+	yesterday := now.AddDate(0, 0, -1)
 	day := func(hour, minute int) time.Time {
 		return time.Date(now.Year(), now.Month(), now.Day(), hour, minute, 0, 0, time.Local)
 	}
@@ -92,7 +93,8 @@ func defaultState() appState {
 			"admin@sigodental.ec":      {ID: 1, Name: "Elena Torres", Email: "admin@sigodental.ec", Role: "administrador", PasswordHash: string(hash), MFAEnabled: true},
 			"recepcion@sigodental.ec":  {ID: 2, Name: "Sofía León", Email: "recepcion@sigodental.ec", Role: "recepcionista", PasswordHash: string(hash)},
 			"odontologo@sigodental.ec": {ID: 3, Name: "Andrea Ruiz", Email: "odontologo@sigodental.ec", Role: "odontologo", PasswordHash: string(hash), MFAEnabled: true},
-			"auditor@sigodental.ec":    {ID: 4, Name: "Mateo Silva", Email: "auditor@sigodental.ec", Role: "auditor", PasswordHash: string(hash), MFAEnabled: true},
+			"asistente@sigodental.ec":  {ID: 4, Name: "Camila Reyes", Email: "asistente@sigodental.ec", Role: "asistente", PasswordHash: string(hash), MFAEnabled: true},
+			"auditor@sigodental.ec":    {ID: 5, Name: "Mateo Silva", Email: "auditor@sigodental.ec", Role: "auditor", PasswordHash: string(hash), MFAEnabled: true},
 		},
 		Patients: []patient{p1, p2, p3},
 		Appointments: []appointment{
@@ -100,18 +102,68 @@ func defaultState() appState {
 			{ID: 2, PatientID: 2, PatientName: "Carlos Mendoza", Dentist: "Dr. Pablo Paz", Chair: "Sillón 2", Start: day(10, 30), End: day(11, 30), Status: "En Sala de Espera", Reason: "Endodoncia"},
 			{ID: 3, PatientID: 3, PatientName: "Lucía Vera", Dentist: "Dra. Andrea Ruiz", Chair: "Sillón 1", Start: day(12, 0), End: day(12, 30), Status: "Programado", Reason: "Control"},
 		},
+		Odontogram: []odontogramEntry{
+			{ID: 1, PatientID: 1, Tooth: 16, Surface: "oclusal", Condition: "Restauración existente", Nomenclature: "FDI", Notes: "Control de restauración en próxima cita", RecordedBy: "odontologo@sigodental.ec", RecordedAt: yesterday},
+		},
+		Periodontal: []periodontalRecord{
+			{ID: 1, PatientID: 1, Tooth: 16, Depths: [6]int{2, 2, 3, 2, 2, 3}, RecordedAt: yesterday},
+		},
+		Notes: []clinicalNote{
+			{ID: 1, PatientID: 1, Subjective: "Sensibilidad ocasional al frío", Objective: "Restauración estable en diente 16", Assessment: "Control preventivo sin signos de urgencia", Plan: "Profilaxis y control en seis meses", SignedBy: "odontologo@sigodental.ec", SignedAt: yesterday, LockedAt: yesterday.Add(24 * time.Hour), Amendments: []amendment{}},
+		},
+		Consents: []consent{
+			{ID: 1, PatientID: 1, Procedure: "Profilaxis dental", Risks: "Sensibilidad temporal", PatientName: "María González", SignatureData: "María González", OTPValidated: true, SignedAt: yesterday},
+		},
+		Plans: []treatmentPlan{
+			{ID: 1, PatientID: 1, PatientName: "María González", Status: "Aprobado", Items: []treatmentItem{{ID: 1, Procedure: "Profilaxis dental", Phase: 1, Sessions: 1, ProfessionalFee: 45, Status: "Agendable"}}, Total: 45, CreatedAt: yesterday},
+			{ID: 2, PatientID: 2, PatientName: "Carlos Mendoza", Status: "Borrador", Items: []treatmentItem{{ID: 2, Procedure: "Endodoncia unirradicular", Phase: 1, Sessions: 2, ProfessionalFee: 180, LaboratoryCost: 20, Status: "Pendiente"}}, Total: 200, CreatedAt: now},
+		},
 		Inventory: []inventoryItem{
 			{ID: 1, Name: "Guantes de nitrilo", Unit: "caja", Stock: 18, Minimum: 10, UnitCost: 7.5, UpdatedAt: now},
 			{ID: 2, Name: "Resina fotocurable", Unit: "jeringa", Stock: 8, Minimum: 5, UnitCost: 24, UpdatedAt: now},
 			{ID: 3, Name: "Anestesia local", Unit: "cartucho", Stock: 42, Minimum: 20, UnitCost: 1.8, UpdatedAt: now},
 		},
-		Counters: counters{Patient: 4, Appointment: 4, Odontogram: 1, Periodontal: 1, Note: 1, Amendment: 1, Consent: 1, Plan: 1, PlanItem: 1, Inventory: 4, Invoice: 1, Closure: 1, Settlement: 1, Outbox: 1, Audit: 1},
+		Invoices: []invoice{
+			{ID: 1, Number: "SIGO-DEMO-0001", PatientID: 1, PatientName: "María González", TreatmentPlanID: 1, Subtotal: 45, Tax: 6.75, Total: 51.75, PaymentMethod: "Efectivo", Payments: []paymentEntry{{Method: "Efectivo", Amount: 51.75}}, Status: "Pagada", FiscalStatus: "Pendiente de integración", CreatedAt: yesterday},
+		},
+		Closures: []cashClosure{
+			{ID: 1, Date: yesterday.Format("2006-01-02"), DeclaredCash: 51.75, ExpectedCash: 51.75, Difference: 0, ClosedBy: "recepcion@sigodental.ec", CreatedAt: yesterday},
+		},
+		Settlements: []professionalSettlement{
+			{ID: 1, Professional: "Dra. Andrea Ruiz", Period: now.Format("2006-01"), Amount: 18, Status: "Pendiente", CreatedAt: now},
+		},
+		Outbox: []outboxMessage{
+			{ID: 1, Channel: "email", Recipient: "lucia@example.com", Template: "appointment_confirmation", Status: "pending", CreatedAt: now},
+		},
+		Audit: []auditEntry{
+			{ID: 1, UserEmail: "odontologo@sigodental.ec", Action: "CREATE", Entity: "clinical_note", EntityID: "1", IP: "demo", CreatedAt: yesterday},
+			{ID: 2, UserEmail: "recepcion@sigodental.ec", Action: "CREATE", Entity: "invoice", EntityID: "1", IP: "demo", CreatedAt: yesterday},
+			{ID: 3, UserEmail: "recepcion@sigodental.ec", Action: "CLOSE", Entity: "cash_register", EntityID: "1", IP: "demo", CreatedAt: yesterday},
+		},
+		Counters: counters{Patient: 4, Appointment: 4, Odontogram: 2, Periodontal: 2, Note: 2, Amendment: 1, Consent: 2, Plan: 3, PlanItem: 3, Inventory: 4, Invoice: 2, Closure: 2, Settlement: 2, Outbox: 2, Audit: 4},
 	}
 }
 
 func normalizeState(state *appState) {
 	if state.Users == nil {
 		state.Users = map[string]user{}
+	}
+	if _, exists := state.Users["asistente@sigodental.ec"]; !exists {
+		passwordHash := ""
+		nextUserID := 1
+		for _, current := range state.Users {
+			if current.ID >= nextUserID {
+				nextUserID = current.ID + 1
+			}
+		}
+		if source, ok := state.Users["odontologo@sigodental.ec"]; ok {
+			passwordHash = source.PasswordHash
+		} else if source, ok := state.Users["recepcion@sigodental.ec"]; ok {
+			passwordHash = source.PasswordHash
+		}
+		if passwordHash != "" {
+			state.Users["asistente@sigodental.ec"] = user{ID: nextUserID, Name: "Camila Reyes", Email: "asistente@sigodental.ec", Role: "asistente", PasswordHash: passwordHash, MFAEnabled: true}
+		}
 	}
 	if state.Patients == nil {
 		state.Patients = []patient{}
